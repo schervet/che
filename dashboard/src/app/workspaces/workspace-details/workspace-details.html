@@ -98,6 +98,15 @@
         </div>
       </md-tab-body>
     </md-tab>
+    <md-tab ng-repeat="environment in workspaceDetailsCtrl.workspaceDetails.config.environments">
+      <md-tab-label>
+        <span class="che-tab-label-title">Environments</span>
+      </md-tab-label>
+      <md-tab-body>
+        <workspace-environments environment-index="$index"
+                                workspace-config="workspaceDetailsCtrl.workspaceDetails.config"></workspace-environments>
+      </md-tab-body>
+    </md-tab>
     <md-tab ng-repeat="section in workspaceDetailsCtrl.getSections()">
       <md-tab-label>
         <md-icon md-font-icon="material-design {{section.icon}}" class="che-tab-label-icon"></md-icon>

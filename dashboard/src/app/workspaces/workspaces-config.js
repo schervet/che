@@ -43,6 +43,9 @@ import {CheStackLibraryFilterController} from './create-workspace/select-stack/s
 import {CheStackLibraryFilter}     from './create-workspace/select-stack/stack-library/stack-library-filter/che-stack-library-filter.directive';
 import {CreateProjectStackLibrarySelectedStackFilter} from './create-workspace/select-stack/stack-library/create-project-stack-library-selected-stack.filter';
 
+import {WorkspaceEnvironmentsController} from './workspace-details/environments/environments.controller';
+import {WorkspaceEnvironments} from './workspace-details/environments/environments.directive';
+
 /**
  * @ngdoc controller
  * @name workspaces:WorkspacesConfig
@@ -71,6 +74,8 @@ export class WorkspacesConfig {
     register.directive('workspaceDetailsProjects', WorkspaceDetailsProjects);
     register.service('workspaceDetailsService', WorkspaceDetailsService);
 
+
+
     register.controller('ExportWorkspaceDialogController', ExportWorkspaceDialogController);
     register.controller('ExportWorkspaceController', ExportWorkspaceController);
     register.directive('exportWorkspace', ExportWorkspace);
@@ -98,12 +103,15 @@ export class WorkspacesConfig {
     register.controller('CheStackLibraryFilterController', CheStackLibraryFilterController);
     register.directive('cheStackLibraryFilter', CheStackLibraryFilter);
 
+    register.controller('WorkspaceEnvironmentsController', WorkspaceEnvironmentsController);
+    register.directive('workspaceEnvironments', WorkspaceEnvironments);
+
     let locationProvider = {
       title: (params) => { return params.workspaceName;},
       templateUrl: 'app/workspaces/workspace-details/workspace-details.html',
       controller: 'WorkspaceDetailsController',
       controllerAs: 'workspaceDetailsCtrl'
-    }
+    };
 
     // config routes
     register.app.config(function ($routeProvider) {

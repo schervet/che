@@ -1,0 +1,62 @@
+<!--
+
+    Copyright (c) 2015 Codenvy, S.A.
+    All rights reserved. This program and the accompanying materials
+    are made available under the terms of the Eclipse Public License v1.0
+    which accompanies this distribution, and is available at
+    http://www.eclipse.org/legal/epl-v10.html
+
+    Contributors:
+      Codenvy, S.A. - initial API and implementation
+
+-->
+<div class="workspace-environments">
+
+  <!-- Name -->
+  <che-label-container che-label-name="Name">
+    <ng-form flex layout="column" name="workspaceEnvironmentsForm">
+      <div layout="column" class="workspace-environments-input">
+        <che-input che-form="workspaceEnvironmentsForm"
+                   che-name="name"
+                   che-place-holder="Name of the environment"
+                   aria-label="Name of the environment"
+                   ng-model="workspaceEnvironmentsController.newEnvironmentName"
+                   ng-change="workspaceEnvironmentsController.updateEnvironmentName(workspaceEnvironmentsForm.$valid)"
+                   ng-model-options="{ updateOn: 'default blur', debounce: { 'default': 2000, 'blur': 0 } }"
+                   required
+                   ng-maxlength="128"
+                   ng-pattern="/^[A-Za-z0-9_\-\.]+$/">
+          <div ng-message="required">A name is required.</div>
+          <div ng-message="pattern">The name should not contain special characters like space, dollar, etc.
+          </div>
+          <div ng-message="maxlength">The name has to be less than 128 characters long.</div>
+          <div ng-message="md-maxlength">The name has to be less than 128 characters long.</div>
+          <!-- TODO -->
+          <div ng-message="uniqueWorkspaceName">This environment name is already used.</div>
+        </che-input>
+      </div>
+    </ng-form>
+  </che-label-container>
+
+  <!-- Recipe -->
+  <che-label-container che-label-name="Recipe">
+    <div layout="row" layout-wrap>
+      <div flex class="recipe-editor">
+        <ui-codemirror ui-codemirror="workspaceEnvironmentsController.editorOptions"
+                       ng-model="workspaceEnvironmentsController.environmentValue.recipe.content"></ui-codemirror>
+      </div>
+    </div>
+  </che-label-container>
+
+  <!-- Machines -->
+  <che-label-container ng-if="workspaceEnvironmentsController.environmentValue.machines.length"
+                       che-label-name="Machines"
+                       class="che-label-container-last">
+  </che-label-container>
+  <workspace-machine-config ng-repeat="(machineName, machineConfig) in workspaceEnvironmentsController.workspaceConfig.environments[workspaceEnvironmentsController.environmentName].machines"
+                            machine-name="machineName"
+                            machine-configs="workspaceEnvironmentsController.workspaceConfig.environments[workspaceEnvironmentsController.environmentName].machines"
+                            environment-recipe="workspaceEnvironmentsController.environmentRecipe"
+                            machine-config-on-change="workspaceEnvironmentsController.updateMachineConfig()"
+                            machine-is-opened="$first"></workspace-machine-config>
+</div>
