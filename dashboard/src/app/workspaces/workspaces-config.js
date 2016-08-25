@@ -48,6 +48,8 @@ import {WorkspaceEnvironments} from './workspace-details/environments/environmen
 import {WorkspaceMachineConfigController} from './workspace-details/environments/machine-config/machine-config.controller';
 import {WorkspaceMachineConfig} from './workspace-details/environments/machine-config/machine-config.directive';
 
+import {ListEnvVariablesController} from './workspace-details/environments/list-env-variables/list-env-variables.controller';
+import {ListEnvVariables} from './workspace-details/environments/list-env-variables/list-env-variables.directive';
 /**
  * @ngdoc controller
  * @name workspaces:WorkspacesConfig
@@ -110,6 +112,8 @@ export class WorkspacesConfig {
     register.controller('WorkspaceMachineConfigController', WorkspaceMachineConfigController);
     register.directive('workspaceMachineConfig', WorkspaceMachineConfig);
 
+    register.controller('ListEnvVariablesController', ListEnvVariablesController);
+    register.directive('listEnvVariables', ListEnvVariables);
     let locationProvider = {
       title: (params) => { return params.workspaceName;},
       templateUrl: 'app/workspaces/workspace-details/workspace-details.html',
