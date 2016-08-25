@@ -1,0 +1,87 @@
+<!--
+
+    Copyright (c) 2015 Codenvy, S.A.
+    All rights reserved. This program and the accompanying materials
+    are made available under the terms of the Eclipse Public License v1.0
+    which accompanies this distribution, and is available at
+    http://www.eclipse.org/legal/epl-v10.html
+
+    Contributors:
+      Codenvy, S.A. - initial API and implementation
+
+-->
+<div class="workspace-machine-config">
+
+  <!-- Title -->
+  <div class="config-title-row" layout="row"
+       layout-align="start center"
+       flex>
+    <div ng-click="workspaceMachineConfigController.machineIsOpened=!workspaceMachineConfigController.machineIsOpened">
+      <i class="config-title-action-show fa"
+         ng-class="{'fa-chevron-circle-down': workspaceMachineConfigController.machineIsOpened, 'fa-chevron-circle-up': !workspaceMachineConfigController.machineIsOpened}"></i>
+    </div>
+    <div class="config-title">{{workspaceMachineConfigController.machineName}}</div>
+    <div class="config-title-action-edit" ng-click="workspaceMachineConfigController.showEditDialog($event)">
+      <i class="config-title-action-edit fa fa-pencil" aria-hidden="true"></i>
+    </div>
+    <div layout="row"
+         layout-align="end-center"
+         flex>
+      <i class="config-title-action-delete fa fa-trash"></i>
+    </div>
+  </div>
+
+  <!-- Params -->
+  <div class="config-params" ng-show="workspaceMachineConfigController.machineIsOpened">
+
+    <!-- Source -->
+    <che-label-container che-label-name="Source">
+      <div layout="column" class="config-input">
+        <che-input che-name="source"
+                   che-place-holder="Source"
+                   che-width="auto"
+                   ng-model="workspaceMachineConfigController.source"
+                   aria-label="Machine {{workspaceMachineConfigController.machineName}} source"
+                   required
+                   readonly>
+          <div ng-message="required">A source is required.</div>
+        </che-input>
+      </div>
+    </che-label-container>
+
+    <!-- RAM -->
+    <che-label-container che-label-name="RAM">
+      <ng-form flex layout="column" name="workspaceMachineConfigForm">
+        <che-workspace-ram-allocation-slider ng-model="workspaceMachineConfigController.newRam"
+                                             che-on-change="workspaceMachineConfigController.updateRam(workspaceMachineConfigForm.$valid)"></che-workspace-ram-allocation-slider>
+      </ng-form>
+    </che-label-container>
+
+    <!-- Is Dev -->
+    <che-label-container che-label-name="Dev">
+      <div class="config-dev-machine-switch">
+        <md-switch ng-model="workspaceMachineConfigController.newDev"
+                   ng-change="workspaceMachineConfigController.updateDev()"
+                   aria-label="Dev machine">
+          <span class="config-dev-machine-info">Used as dev machine, injects dev services into machine</span>
+        </md-switch>
+      </div>
+    </che-label-container>
+
+    <!-- Ports -->
+    <che-label-container che-label-name="Ports">
+      <div class="config-params-table">
+        <list-ports servers="workspaceMachineConfigController.machineConfigs[workspaceMachineConfigController.machineName].servers"
+                    servers-on-change="workspaceMachineConfigController.updateServers()"></list-ports>
+      </div>
+    </che-label-container>
+
+    <!-- Environment Variables-->
+    <che-label-container che-label-name="Environment variables">
+      <div class="config-params-table">
+        <list-env-variables env-variables="workspaceMachineConfigController.envVariables"
+                            env-variables-on-change="workspaceMachineConfigController.updateEnvVariables()"></list-env-variables>
+      </div>
+    </che-label-container>
+  </div>
+</div>

@@ -45,6 +45,8 @@ import {CreateProjectStackLibrarySelectedStackFilter} from './create-workspace/s
 
 import {WorkspaceEnvironmentsController} from './workspace-details/environments/environments.controller';
 import {WorkspaceEnvironments} from './workspace-details/environments/environments.directive';
+import {WorkspaceMachineConfigController} from './workspace-details/environments/machine-config/machine-config.controller';
+import {WorkspaceMachineConfig} from './workspace-details/environments/machine-config/machine-config.directive';
 
 /**
  * @ngdoc controller
@@ -105,6 +107,8 @@ export class WorkspacesConfig {
 
     register.controller('WorkspaceEnvironmentsController', WorkspaceEnvironmentsController);
     register.directive('workspaceEnvironments', WorkspaceEnvironments);
+    register.controller('WorkspaceMachineConfigController', WorkspaceMachineConfigController);
+    register.directive('workspaceMachineConfig', WorkspaceMachineConfig);
 
     let locationProvider = {
       title: (params) => { return params.workspaceName;},
