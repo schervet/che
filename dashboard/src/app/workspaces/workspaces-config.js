@@ -50,6 +50,8 @@ import {WorkspaceMachineConfig} from './workspace-details/environments/machine-c
 
 import {ListEnvVariablesController} from './workspace-details/environments/list-env-variables/list-env-variables.controller';
 import {ListEnvVariables} from './workspace-details/environments/list-env-variables/list-env-variables.directive';
+import {AddVariableDialogController} from  './workspace-details/environments/list-env-variables/add-variable-dialog/add-variable-dialog.controller';
+import {EditVariableDialogController} from  './workspace-details/environments/list-env-variables/edit-variable-dialog/edit-variable-dialog.controller';
 /**
  * @ngdoc controller
  * @name workspaces:WorkspacesConfig
@@ -77,8 +79,6 @@ export class WorkspacesConfig {
     register.controller('WorkspaceDetailsProjectsCtrl', WorkspaceDetailsProjectsCtrl);
     register.directive('workspaceDetailsProjects', WorkspaceDetailsProjects);
     register.service('workspaceDetailsService', WorkspaceDetailsService);
-
-
 
     register.controller('ExportWorkspaceDialogController', ExportWorkspaceDialogController);
     register.controller('ExportWorkspaceController', ExportWorkspaceController);
@@ -114,6 +114,9 @@ export class WorkspacesConfig {
 
     register.controller('ListEnvVariablesController', ListEnvVariablesController);
     register.directive('listEnvVariables', ListEnvVariables);
+    register.controller('AddVariableDialogController', AddVariableDialogController);
+    register.controller('EditVariableDialogController', EditVariableDialogController);
+
     let locationProvider = {
       title: (params) => { return params.workspaceName;},
       templateUrl: 'app/workspaces/workspace-details/workspace-details.html',
