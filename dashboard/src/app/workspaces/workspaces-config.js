@@ -52,6 +52,9 @@ import {ListEnvVariablesController} from './workspace-details/environments/list-
 import {ListEnvVariables} from './workspace-details/environments/list-env-variables/list-env-variables.directive';
 import {AddVariableDialogController} from  './workspace-details/environments/list-env-variables/add-variable-dialog/add-variable-dialog.controller';
 import {EditVariableDialogController} from  './workspace-details/environments/list-env-variables/edit-variable-dialog/edit-variable-dialog.controller';
+
+import {ListPortsController} from './workspace-details/environments/list-ports/list-ports.controller';
+import {ListPorts} from './workspace-details/environments/list-ports/list-ports.directive';
 /**
  * @ngdoc controller
  * @name workspaces:WorkspacesConfig
@@ -117,6 +120,8 @@ export class WorkspacesConfig {
     register.controller('AddVariableDialogController', AddVariableDialogController);
     register.controller('EditVariableDialogController', EditVariableDialogController);
 
+    register.controller('ListPortsController', ListPortsController);
+    register.directive('listPorts', ListPorts);
     let locationProvider = {
       title: (params) => { return params.workspaceName;},
       templateUrl: 'app/workspaces/workspace-details/workspace-details.html',
