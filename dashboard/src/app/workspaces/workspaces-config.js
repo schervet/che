@@ -55,6 +55,9 @@ import {EditVariableDialogController} from  './workspace-details/environments/li
 
 import {ListPortsController} from './workspace-details/environments/list-ports/list-ports.controller';
 import {ListPorts} from './workspace-details/environments/list-ports/list-ports.directive';
+import {AddPortDialogController} from  './workspace-details/environments/list-ports/add-port-dialog/add-port-dialog.controller';
+import {EditPortDialogController} from  './workspace-details/environments/list-ports/edit-port-dialog/edit-port-dialog.controller';
+
 /**
  * @ngdoc controller
  * @name workspaces:WorkspacesConfig
@@ -122,6 +125,9 @@ export class WorkspacesConfig {
 
     register.controller('ListPortsController', ListPortsController);
     register.directive('listPorts', ListPorts);
+    register.controller('AddPortDialogController', AddPortDialogController);
+    register.controller('EditPortDialogController', EditPortDialogController);
+
     let locationProvider = {
       title: (params) => { return params.workspaceName;},
       templateUrl: 'app/workspaces/workspace-details/workspace-details.html',
