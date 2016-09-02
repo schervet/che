@@ -20,7 +20,7 @@ export class WorkspaceDetailsController {
    * Default constructor that is using resource injection
    * @ngInject for Dependency injection
    */
-  constructor($scope, $rootScope, $route, $location, cheWorkspace, $mdDialog, cheNotification, ideSvc, $log, workspaceDetailsService, lodash, $timeout) {
+  constructor($scope, $rootScope, $route, $location, cheWorkspace, $mdDialog, cheNotification, ideSvc, $log, workspaceDetailsService, lodash, $q, $timeout) {
     this.$rootScope = $rootScope;
     this.cheNotification = cheNotification;
     this.cheWorkspace = cheWorkspace;
@@ -30,12 +30,17 @@ export class WorkspaceDetailsController {
     this.$log = $log;
     this.workspaceDetailsService = workspaceDetailsService;
     this.lodash = lodash;
+    this.$q = $q;
     this.$timeout = $timeout;
 
     this.workspaceDetails = {};
+    this.copyWorkspaceDetails = {};
     this.namespace = $route.current.params.namespace;
     this.workspaceName = $route.current.params.workspaceName;
     this.workspaceKey = this.namespace + ":" + this.workspaceName;
+
+    this.devMachineName = '';
+    this.defaultEnvRecipe = null;
 
     this.loading = true;
     this.timeoutPromise;
@@ -102,9 +107,48 @@ export class WorkspaceDetailsController {
     if (this.loading) {
       this.loading = false;
     }
+
+    angular.copy(this.workspaceDetails, this.copyWorkspaceDetails);
+
     this.workspaceId = this.workspaceDetails.id;
-    this.newName = angular.copy(this.workspaceDetails.config.name);
+    this.newName = this.workspaceDetails.config.name;
     this.newRam = this.getRam();
+  }
+
+  /**
+   * Parses recipe content
+   * @param recipeContent {string}
+   * @param recipeContentType {string}
+   * @returns {*} recipe object
+   */
+  parseRecipe(recipeContent, recipeContentType) {
+    let recipe = null;
+    if (/yaml/i.test(recipeContentType)){
+      try {
+        recipe = jsyaml.load(recipeContent);
+      } catch (e) {
+        this.$log.error(e);
+      }
+    }
+    return recipe;
+  }
+
+  /**
+   * Dumps recipe object
+   * @param recipe {Object}
+   * @param recipeContentType {string}
+   * @returns {string} dumped recipe
+   */
+  stringifyRecipe(recipe, recipeContentType) {
+    let recipeContent = '';
+    if (/yaml/i.test(recipeContentType)) {
+      try {
+        recipeContent = jsyaml.dump(recipe);
+      } catch (e) {
+        this.$log.error(e);
+      }
+    }
+    return recipeContent;
   }
 
   /**
@@ -147,62 +191,51 @@ export class WorkspaceDetailsController {
   }
 
   /**
-   * Calls method to update workspace info after timeout.
-   * @param isFormValid {Boolean} true if form is valid
+   * Updates name of workspace
+   * @param isFormValid {boolean} true if workspaceNameForm is valid
    */
-  updateWorkspace(isFormValid) {
-    this.$timeout.cancel(this.timeoutPromise);
-
-    if (isFormValid === false || !(this.isNameChanged() || this.isRamChanged())) {
+  updateName(isFormValid) {
+    if (isFormValid === false || !this.isNameChanged()) {
       return;
     }
 
-    this.timeoutPromise = this.$timeout(() => {
-      this.isLoading = true;
-      this.cheWorkspace.fetchWorkspaceDetails(this.workspaceId).then(() => {
-        this.doUpdateWorkspace();
-      }, () => {
-        this.doUpdateWorkspace();
-      });
-    }, 500);
+    this.copyWorkspaceDetails.config.name = this.newName;
+    this.doUpdateWorkspace();
+  }
+
+  /**
+   * Callback which is called from WorkspaceEnvironmentsController
+   * @returns {Promise}
+   */
+  updateWorkspaceConfig() {
+    if (angular.equals(this.copyWorkspaceDetails.config, this.workspaceDetails.config)) {
+      let defer = this.$q.defer();
+      defer.resolve();
+      return defer.promise;
+    }
+    return this.doUpdateWorkspace();
   }
 
   /**
    * Updates workspace info.
    */
   doUpdateWorkspace() {
-    this.workspaceDetails = this.cheWorkspace.getWorkspacesById().get(this.workspaceId);
-    let workspaceNewDetails = angular.copy(this.workspaceDetails);
+    this.isLoading = true;
+    delete this.copyWorkspaceDetails.links;
 
-    workspaceNewDetails.config.name = this.newName;
-
-    this.lodash.forEach(workspaceNewDetails.config.environments, (env) => {
-      if (env.name === workspaceNewDetails.config.defaultEnv) {
-        this.lodash.forEach(env.machines, (machine) => {
-          if (machine.agents.indexOf('org.eclipse.che.ws-agent') >= 0) {
-           /* TODO not implemented yet machine.limits.ram = this.newRam;
-
-            if (this.getWorkspaceStatus() === 'STOPPED') {
-              this.origRam = this.newRam;
-            }*/
-          }
-        });
-      }
-    });
-
-    delete workspaceNewDetails.links;
-
-    let promise = this.cheWorkspace.updateWorkspace(this.workspaceId, workspaceNewDetails);
+    let promise = this.cheWorkspace.updateWorkspace(this.workspaceId, this.copyWorkspaceDetails);
     promise.then((data) => {
       this.workspaceName = data.config.name;
       this.updateWorkspaceData();
       this.cheNotification.showInfo('Workspace is successfully updated.');
-      this.$location.path('/workspace/' + this.namespace + '/' + this.workspaceName);
+      return this.$location.path('/workspace/' + this.namespace + '/' + this.workspaceName);
     }, (error) => {
       this.isLoading = false;
       this.cheNotification.showError(error.data.message !== null ? error.data.message : 'Update workspace failed.');
       this.$log.error(error);
     });
+
+    return promise;
   }
 
   //Perform workspace deletion.
