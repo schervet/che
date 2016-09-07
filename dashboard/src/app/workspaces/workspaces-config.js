@@ -47,6 +47,7 @@ import {WorkspaceEnvironmentsController} from './workspace-details/environments/
 import {WorkspaceEnvironments} from './workspace-details/environments/environments.directive';
 import {WorkspaceMachineConfigController} from './workspace-details/environments/machine-config/machine-config.controller';
 import {WorkspaceMachineConfig} from './workspace-details/environments/machine-config/machine-config.directive';
+import {EditMachineNameDialogController} from  './workspace-details/environments/machine-config/edit-machine-name-dialog/edit-machine-name-dialog.controller';
 
 import {ListEnvVariablesController} from './workspace-details/environments/list-env-variables/list-env-variables.controller';
 import {ListEnvVariables} from './workspace-details/environments/list-env-variables/list-env-variables.directive';
@@ -117,6 +118,7 @@ export class WorkspacesConfig {
     register.directive('workspaceEnvironments', WorkspaceEnvironments);
     register.controller('WorkspaceMachineConfigController', WorkspaceMachineConfigController);
     register.directive('workspaceMachineConfig', WorkspaceMachineConfig);
+    register.controller('EditMachineNameDialogController', EditMachineNameDialogController);
 
     register.controller('ListEnvVariablesController', ListEnvVariablesController);
     register.directive('listEnvVariables', ListEnvVariables);
