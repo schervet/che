@@ -27,7 +27,7 @@ export class AddPortDialogController {
     this.updateInProgress = false;
 
     this.port = 0;
-    this.protocol = 'tcp';
+    this.protocol = 'http';
   }
 
   /**

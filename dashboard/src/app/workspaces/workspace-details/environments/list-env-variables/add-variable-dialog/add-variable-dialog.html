@@ -7,6 +7,7 @@
                    che-name="name"
                    che-place-holder="New environment variable name"
                    ng-model="addVariableDialogController.name"
+                   aria-label="New environment variable name"
                    required>
           <div ng-message="required">A name is required.</div>
         </che-input>
@@ -18,6 +19,7 @@
                       che-name="value"
                       che-place-holder="New environment variable value"
                       ng-model="addVariableDialogController.value"
+                      aria-label="New environment variable value"
                       required>
           <div ng-message="required">A value is required.</div>
         </che-textarea>

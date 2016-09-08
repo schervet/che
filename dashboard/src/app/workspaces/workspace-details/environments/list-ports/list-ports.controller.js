@@ -39,7 +39,7 @@ export class ListPortsController {
   buildServersList() {
     this.serversList = this.lodash.map(this.servers, (server, name) => {
       server.name = name;
-      server.protocol = server.protocol ? server.protocol : 'tcp';
+      server.protocol = server.protocol ? server.protocol : 'http';
       return server;
     });
   }
@@ -81,10 +81,9 @@ export class ListPortsController {
    * Check all ports in list
    */
   selectAllPorts() {
-    this.serversSelectedNumber = 0;
+    this.serversSelectedNumber = this.serversList.length;
     this.serversList.forEach((server) => {
       this.serversSelectedStatus[server.name] = true;
-      this.serversSelectedNumber++;
     })
   }
 
@@ -97,26 +96,26 @@ export class ListPortsController {
   }
 
   addPort(port, protocol) {
-    let name = this.buildServerName(port, protocol);
+    let name = this.buildServerName(port);
     this.servers[name] = {'port': port, 'protocol': protocol};
 
     this.updateSelectedStatus();
     return this.serversOnChange().then(() => {this.buildServersList();});
   }
 
-  updatePort(portName, port, protocol) {
-    delete this.servers[portName];
-    delete this.serversSelectedStatus[portName];
+  updatePort(serverName, port, protocol) {
+    delete this.servers[serverName];
+    delete this.serversSelectedStatus[serverName];
     this.updateSelectedStatus();
 
-    let newName = this.buildServerName(port, protocol);
+    let newName = this.buildServerName(port);
     this.servers[newName] = {'port': port, 'protocol': protocol};
 
     return this.serversOnChange().then(() => {this.buildServersList();});
   }
 
-  buildServerName(port, protocol) {
-    return port + '/' + protocol;
+  buildServerName(port) {
+    return port + '/tcp';
   }
 
   /**

@@ -24,11 +24,6 @@
     <div class="config-title-action-edit" ng-click="workspaceMachineConfigController.showEditDialog($event)">
       <i class="config-title-action-edit fa fa-pencil" aria-hidden="true"></i>
     </div>
-    <div layout="row"
-         layout-align="end-center"
-         flex>
-      <i class="config-title-action-delete fa fa-trash"></i>
-    </div>
   </div>
 
   <!-- Params -->
@@ -82,6 +77,15 @@
         <list-env-variables env-variables="workspaceMachineConfigController.envVariables"
                             env-variables-on-change="workspaceMachineConfigController.updateEnvVariables()"></list-env-variables>
       </div>
+    </che-label-container>
+
+    <!-- Delete -->
+    <che-label-container class="config-delete-label"
+                         che-label-name="Delete machine"
+                         che-label-description="Environment should contain at least one machine.">
+      <che-button-danger che-button-title="Delete"
+                         ng-disabled="workspaceMachineConfigController.machinesNumber === 1"
+                         ng-click="workspaceMachineConfigController.deleteMachine($event)"></che-button-danger>
     </che-label-container>
   </div>
 </div>

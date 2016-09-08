@@ -32,6 +32,7 @@ export class WorkspaceEnvironmentsController {
       lineNumbers: false,
       mode: 'text/x-yaml',
       readOnly: true,
+      gutters: [],
       onLoad: (editor) => {
         $timeout(() => {
           editor.refresh();

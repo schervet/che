@@ -169,4 +169,27 @@ export class WorkspaceMachineConfigController {
 
     return this.doUpdateConfig();
   }
+
+  // TODO
+  deleteMachine() {
+    this.showDeleteConfirmation().then(() => {
+      // todo
+    })
+  }
+
+  /**
+   * Show confirmation popup before machine to delete
+   * @returns {*}
+   */
+  showDeleteConfirmation() {
+    let confirmTitle = 'Would you like to delete this machine?';
+    let confirm = this.$mdDialog.confirm()
+      .title(confirmTitle)
+      .ariaLabel('Remove machine')
+      .ok('Delete!')
+      .cancel('Cancel')
+      .clickOutsideToClose(true);
+
+    return this.$mdDialog.show(confirm);
+  }
 }

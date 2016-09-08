@@ -81,10 +81,9 @@ export class ListEnvVariablesController {
    * Check all environment variables in list
    */
   selectAllVariables() {
-    this.envVariablesSelectedNumber = 0;
+    this.envVariablesSelectedNumber = this.envVariablesList.length;
     this.envVariablesList.forEach((envVariable) => {
       this.envVariablesSelectedStatus[envVariable.name] = true;
-      this.envVariablesSelectedNumber++;
     })
   }
 
@@ -116,7 +115,8 @@ export class ListEnvVariablesController {
       bindToController: true,
       clickOutsideToClose: true,
       locals: {
-        callbackController: this
+        callbackController: this,
+        variables: this.envVariables
       },
       templateUrl: 'app/workspaces/workspace-details/environments/list-env-variables/add-variable-dialog/add-variable-dialog.html'
     });
