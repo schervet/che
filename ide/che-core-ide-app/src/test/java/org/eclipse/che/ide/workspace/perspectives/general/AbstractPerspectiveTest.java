@@ -94,6 +94,8 @@ public class AbstractPerspectiveTest {
     private PartPresenter           activePart;
     @Mock
     private AbstractEditorPresenter editorPart;
+    @Mock
+    private PartStack               partStack;
 
     private AbstractPerspective perspective;
 
@@ -158,7 +160,7 @@ public class AbstractPerspectiveTest {
 
     @Test
     public void perspectiveStateShouldBeStored() {
-        perspective.onActivePartChanged(new ActivePartChangedEvent(editorPart));
+        perspective.onActivePartChanged(new ActivePartChangedEvent(editorPart, partStack));
 
         perspective.storeState();
 
@@ -167,7 +169,7 @@ public class AbstractPerspectiveTest {
 
     @Test
     public void perspectiveStateShouldBeRestored() {
-        perspective.onActivePartChanged(new ActivePartChangedEvent(editorPart));
+        perspective.onActivePartChanged(new ActivePartChangedEvent(editorPart, partStack));
         perspective.storeState();
 
         perspective.restoreState();

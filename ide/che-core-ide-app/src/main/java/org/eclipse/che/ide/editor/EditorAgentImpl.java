@@ -27,7 +27,6 @@ import org.eclipse.che.ide.api.editor.EditorPartPresenter.EditorPartCloseHandler
 import org.eclipse.che.ide.api.editor.EditorProvider;
 import org.eclipse.che.ide.api.editor.EditorRegistry;
 import org.eclipse.che.ide.api.editor.OpenEditorCallbackImpl;
-import org.eclipse.che.ide.editor.synchronization.EditorContentSynchronizer;
 import org.eclipse.che.ide.api.editor.texteditor.HasReadOnlyProperty;
 import org.eclipse.che.ide.api.editor.texteditor.TextEditor;
 import org.eclipse.che.ide.api.event.ActivePartChangedEvent;
@@ -40,12 +39,15 @@ import org.eclipse.che.ide.api.filetypes.FileType;
 import org.eclipse.che.ide.api.filetypes.FileTypeRegistry;
 import org.eclipse.che.ide.api.machine.events.WsAgentStateEvent;
 import org.eclipse.che.ide.api.machine.events.WsAgentStateHandler;
+import org.eclipse.che.ide.api.parts.EditorMultiPartStack;
 import org.eclipse.che.ide.api.parts.EditorPartStack;
 import org.eclipse.che.ide.api.parts.EditorTab;
 import org.eclipse.che.ide.api.parts.PartPresenter;
 import org.eclipse.che.ide.api.parts.PropertyListener;
 import org.eclipse.che.ide.api.parts.WorkspaceAgent;
 import org.eclipse.che.ide.api.resources.VirtualFile;
+import org.eclipse.che.ide.editor.synchronization.EditorContentSynchronizer;
+import org.eclipse.che.ide.part.editor.event.ClosePaneEvent;
 import org.eclipse.che.ide.part.editor.multipart.EditorMultiPartStackPresenter;
 import org.eclipse.che.ide.resource.Path;
 
@@ -72,12 +74,12 @@ public class EditorAgentImpl implements EditorAgent,
                                         WindowActionHandler,
                                         WsAgentStateHandler {
 
-    private final EventBus                      eventBus;
-    private final WorkspaceAgent                workspaceAgent;
-    private final FileTypeRegistry              fileTypeRegistry;
-    private final EditorRegistry                editorRegistry;
-    private final CoreLocalizationConstant      coreLocalizationConstant;
-    private final EditorMultiPartStackPresenter editorMultiPartStack;
+    private final EventBus                 eventBus;
+    private final WorkspaceAgent           workspaceAgent;
+    private final FileTypeRegistry         fileTypeRegistry;
+    private final EditorRegistry           editorRegistry;
+    private final CoreLocalizationConstant coreLocalizationConstant;
+    private final EditorMultiPartStack     editorMultiPartStack;
 
     private final List<EditorPartPresenter>           openedEditors;
     private final Provider<EditorContentSynchronizer> editorContentSynchronizerProvider;
@@ -109,7 +111,7 @@ public class EditorAgentImpl implements EditorAgent,
 
     @Override
     public void onClose(EditorPartPresenter editor) {
-        closeEditor(editor);
+        closeEditor(editor, true);
     }
 
     @Override
@@ -119,7 +121,7 @@ public class EditorAgentImpl implements EditorAgent,
                 openEditor(event.getFile());
                 break;
             case CLOSE:
-                closeEditor(event.getEditorTab());
+                closeEditor(event.getEditorTab(), event.isAutoClosePane());
         }
     }
 
@@ -168,13 +170,39 @@ public class EditorAgentImpl implements EditorAgent,
         doOpen(file, new OpenEditorCallbackImpl(), constraints);
     }
 
-    public void closeEditor(EditorTab tab) {
+    private void closeEditor(EditorTab tab, boolean autoClosePane) {
         checkArgument(tab != null, "Null editor tab occurred");
-        doClose(tab.getRelativeEditorPart());
+
+        EditorPartPresenter editor = tab.getRelativeEditorPart();
+        if (editor == null) {
+            return;
+        }
+        EditorPartStack editorPartStack = editorMultiPartStack.getPartStackByPart(editor);
+
+        openedEditors.remove(editor);
+
+        editor.close(false);
+
+        if (editor instanceof TextEditor) {
+            editorContentSynchronizerProvider.get().unTrackEditor(editor);
+        }
+
+        if (activeEditor != null && activeEditor == editor) {
+            activeEditor = null;
+        }
+
+        if (autoClosePane) {
+            eventBus.fireEvent(new ClosePaneEvent(editorPartStack));
+        }
     }
 
     @Override
-    public void closeEditor(EditorPartPresenter editor) {
+    public void closeEditor(EditorPartPresenter editorPart) {
+        closeEditor(editorPart, true);
+    }
+
+    @Override
+    public void closeEditor(EditorPartPresenter editor, boolean autoClosePane) {
         if (editor == null) {
             return;
         }
@@ -187,25 +215,7 @@ public class EditorAgentImpl implements EditorAgent,
         EditorTab editorTab = editorPartStack.getTabByPart(editor);
         //we have the handlers for the closing file event in different places of the project
         //so we need to notify them about it (we can't just pass doClose() method)
-        eventBus.fireEvent(FileEvent.createCloseFileEvent(editorTab));
-    }
-
-    private void doClose(EditorPartPresenter editor) {
-        if (editor == null) {
-            return;
-        }
-
-        openedEditors.remove(editor);
-
-        editor.close(true);
-
-        if (editor instanceof TextEditor) {
-            editorContentSynchronizerProvider.get().unTrackEditor(editor);
-        }
-
-        if (activeEditor != null && activeEditor == editor) {
-            activeEditor = null;
-        }
+        eventBus.fireEvent(FileEvent.createCloseFileEvent(editorTab, autoClosePane));
     }
 
     @Override
@@ -214,8 +224,7 @@ public class EditorAgentImpl implements EditorAgent,
     }
 
     private void doOpen(final VirtualFile file, final OpenEditorCallback callback, Constraints constraints) {
-        PartPresenter activePart = editorMultiPartStack.getActivePart();
-        EditorPartStack activePartStack = editorMultiPartStack.getPartStackByPart(activePart);
+        EditorPartStack activePartStack = editorMultiPartStack.getActivePartStack();
         if (constraints == null && activePartStack != null) {
             PartPresenter partPresenter = activePartStack.getPartByPath(file.getLocation());
             if (partPresenter != null) {
@@ -279,13 +288,8 @@ public class EditorAgentImpl implements EditorAgent,
     }
 
     @Override
-    public List<EditorPartPresenter> getOpenedEditorsBasedOn(EditorPartPresenter editorPart) {
+    public List<EditorPartPresenter> getOpenedEditorsFor(EditorPartStack editorPartStack) {
         List<EditorPartPresenter> result = newArrayList();
-        EditorPartStack editorPartStack = editorMultiPartStack.getPartStackByPart(editorPart);
-        if (editorPartStack == null) {
-            return result;
-        }
-
         for (EditorPartPresenter editor : openedEditors) {
             if (editorPartStack.containsPart(editor)) {
                 result.add(editor);
@@ -345,10 +349,5 @@ public class EditorAgentImpl implements EditorAgent,
     @Override
     public EditorPartPresenter getPreviousFor(EditorPartPresenter editorPart) {
         return editorMultiPartStack.getPreviousFor(editorPart);
-    }
-
-    @Override
-    public EditorPartPresenter getLastClosedBasedOn(EditorPartPresenter editorPart) {
-        return editorMultiPartStack.getLastClosedBasedOn(editorPart);
     }
 }

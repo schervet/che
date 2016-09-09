@@ -21,6 +21,7 @@ import org.eclipse.che.ide.api.event.SelectionChangedEvent;
 import org.eclipse.che.ide.api.event.SelectionChangedHandler;
 import org.eclipse.che.ide.api.parts.AbstractPartPresenter;
 import org.eclipse.che.ide.api.parts.PartPresenter;
+import org.eclipse.che.ide.api.parts.PartStack;
 import org.eclipse.che.ide.api.selection.Selection;
 import org.junit.After;
 import org.junit.Before;
@@ -51,6 +52,8 @@ public class TestSelectionAgent {
 
     @Mock
     private PartPresenter part;
+    @Mock
+    private PartStack     partStack;
 
     @Mock
     private Selection selection;
@@ -72,7 +75,7 @@ public class TestSelectionAgent {
         when(part.getSelection()).thenReturn(selection);
 
         // fire event, for agent to get information about active part
-        eventBus.fireEvent(new ActivePartChangedEvent(part));
+        eventBus.fireEvent(new ActivePartChangedEvent(part, partStack));
 
         assertEquals("Agent should return proper Selection", selection, agent.getSelection());
     }
@@ -85,7 +88,7 @@ public class TestSelectionAgent {
         eventBus.addHandler(SelectionChangedEvent.TYPE, handler);
 
         // fire event, for agent to get information about active part
-        eventBus.fireEvent(new ActivePartChangedEvent(part));
+        eventBus.fireEvent(new ActivePartChangedEvent(part, partStack));
 
         verify(handler).onSelectionChanged((SelectionChangedEvent)any());
     }
@@ -129,7 +132,7 @@ public class TestSelectionAgent {
         };
 
         // fire event, for agent to get information about active part
-        eventBus.fireEvent(new ActivePartChangedEvent(part));
+        eventBus.fireEvent(new ActivePartChangedEvent(part, partStack));
         SelectionChangedHandler handler = mock(SelectionChangedHandler.class);
         eventBus.addHandler(SelectionChangedEvent.TYPE, handler);
 
@@ -177,9 +180,9 @@ public class TestSelectionAgent {
         };
 
         // fire event, for agent to get information about active part
-        eventBus.fireEvent(new ActivePartChangedEvent(firstPart));
+        eventBus.fireEvent(new ActivePartChangedEvent(firstPart, partStack));
         // change part
-        eventBus.fireEvent(new ActivePartChangedEvent(mock(PartPresenter.class)));
+        eventBus.fireEvent(new ActivePartChangedEvent(mock(PartPresenter.class), partStack));
 
         SelectionChangedHandler handler = mock(SelectionChangedHandler.class);
         eventBus.addHandler(SelectionChangedEvent.TYPE, handler);

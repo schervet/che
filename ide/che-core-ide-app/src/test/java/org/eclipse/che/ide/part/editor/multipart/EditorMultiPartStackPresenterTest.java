@@ -11,29 +11,39 @@
 package org.eclipse.che.ide.part.editor.multipart;
 
 import com.google.gwtmockito.GwtMockitoTestRunner;
+import com.google.inject.Provider;
 import com.google.web.bindery.event.shared.Event;
 import com.google.web.bindery.event.shared.EventBus;
 import com.google.web.bindery.event.shared.HandlerRegistration;
 
 import org.eclipse.che.ide.api.constraints.Constraints;
 import org.eclipse.che.ide.api.editor.AbstractEditorPresenter;
+import org.eclipse.che.ide.api.editor.EditorAgent;
 import org.eclipse.che.ide.api.editor.EditorPartPresenter;
 import org.eclipse.che.ide.api.event.ActivePartChangedEvent;
 import org.eclipse.che.ide.api.parts.EditorPartStack;
+import org.eclipse.che.ide.api.parts.PartPresenter;
 import org.eclipse.che.ide.part.editor.EditorPartStackFactory;
 import org.eclipse.che.ide.part.editor.EditorPartStackPresenter;
+import org.eclipse.che.ide.part.editor.event.ClosePaneEvent;
+import org.eclipse.che.ide.part.editor.event.SplitEmptyPaneEvent;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Matchers;
 import org.mockito.Mock;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.eclipse.che.ide.api.constraints.Direction.HORIZONTALLY;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isNull;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -53,6 +63,8 @@ public class EditorMultiPartStackPresenterTest {
     @Mock
     private EventBus                 eventBus;
     @Mock
+    private Provider<EditorAgent>    editorAgentProvider;
+    @Mock
     private EditorPartStackFactory   editorPartStackFactory;
 
     //additional mocks
@@ -66,6 +78,8 @@ public class EditorMultiPartStackPresenterTest {
     private EditorPartPresenter      editorPartPresenter;
     @Mock
     private HandlerRegistration      handlerRegistration;
+    @Mock
+    private EditorAgent              editorAgent;
 
     private EditorMultiPartStackPresenter presenter;
 
@@ -74,13 +88,17 @@ public class EditorMultiPartStackPresenterTest {
         when(editorPartStackFactory.create()).thenReturn(editorPartStack);
         when(editorPartStack.containsPart(partPresenter1)).thenReturn(true);
         when(eventBus.addHandler((Event.Type<Object>)anyObject(), anyObject())).thenReturn(handlerRegistration);
+        when(editorAgentProvider.get()).thenReturn(editorAgent);
+        List<EditorPartPresenter> openedEditors = new ArrayList<>(1);
+        openedEditors.add(partPresenter1);
+        when(editorAgent.getOpenedEditors()).thenReturn(openedEditors);
 
-        presenter = new EditorMultiPartStackPresenter(eventBus, view, editorPartStackFactory);
+        presenter = new EditorMultiPartStackPresenter(eventBus, editorAgentProvider, view, editorPartStackFactory);
     }
 
     @Test
     public void constructorShouldBeVerified() {
-        verify(eventBus).addHandler(Matchers.<ActivePartChangedEvent.Type>anyObject(), eq(presenter));
+        verify(eventBus, times(3)).addHandler(Matchers.<ActivePartChangedEvent.Type>anyObject(), eq(presenter));
     }
 
     @Test
@@ -160,27 +178,53 @@ public class EditorMultiPartStackPresenterTest {
     }
 
     @Test
-    public void shouldRemovePartStackWhenPartStackIsEmpty() {
-        when(editorPartStack.getActivePart()).thenReturn(null);
+    public void shouldRemovePartStackByClosePaneEventWhenPartStackIsEmpty() {
+        when(editorPartStack.containsPart(partPresenter1)).thenReturn(false);
+        ClosePaneEvent closePaneEvent = mock(ClosePaneEvent.class);
+        when(closePaneEvent.getEditorPartStack()).thenReturn(editorPartStack);
 
-        presenter.addPart(partPresenter1);
-        presenter.removePart(partPresenter1);
+        presenter.onClosePane(closePaneEvent);
 
-        verify(editorPartStack).containsPart(partPresenter1);
-        verify(editorPartStack).removePart(partPresenter1);
+        verify(editorPartStack).containsPart((PartPresenter)anyObject());
         verify(view).removePartStack(editorPartStack);
     }
 
     @Test
+    public void shouldNotRemovePartStackWhenPartStackIsNotEmpty() {
+        ClosePaneEvent closePaneEvent = mock(ClosePaneEvent.class);
+        when(closePaneEvent.getEditorPartStack()).thenReturn(editorPartStack);
+
+        presenter.onClosePane(closePaneEvent);
+
+        verify(editorPartStack).containsPart((PartPresenter)anyObject());
+        verify(view, never()).removePartStack(editorPartStack);
+    }
+
+    @Test
+    public void onSplitEmptyPaneTest() {
+        SplitEmptyPaneEvent splitEmptyPaneEvent = mock(SplitEmptyPaneEvent.class);
+        EditorPartStack paneToSplitting = mock(EditorPartStack.class);
+        when(splitEmptyPaneEvent.getPaneToSplitting()).thenReturn(paneToSplitting);
+
+        presenter.onSplitEmptyPane(splitEmptyPaneEvent);
+
+        verify(splitEmptyPaneEvent).getDirection();
+        verify(splitEmptyPaneEvent).getPaneToSplitting();
+        verify(editorPartStackFactory).create();
+        verify(view).addPartStack(eq(editorPartStack), eq(paneToSplitting), (Constraints)anyObject());
+    }
+
+    @Test
     public void shouldOpenPreviousActivePartStack() {
-        when(editorPartStack.getActivePart()).thenReturn(null);
-
-        presenter.addPart(partPresenter2);
+        when(editorPartStack.containsPart(partPresenter1)).thenReturn(false);
+        ClosePaneEvent closePaneEvent = mock(ClosePaneEvent.class);
+        when(closePaneEvent.getEditorPartStack()).thenReturn(editorPartStack);
         presenter.addPart(partPresenter1);
-        presenter.removePart(partPresenter1);
+        presenter.addPart(partPresenter2);
 
-        verify(editorPartStack).containsPart(partPresenter1);
-        verify(editorPartStack).removePart(partPresenter1);
+        presenter.onClosePane(closePaneEvent);
+
+        verify(editorPartStack).containsPart((PartPresenter)anyObject());
         verify(view).removePartStack(editorPartStack);
         verify(editorPartStack).openPreviousActivePart();
     }

@@ -18,6 +18,7 @@ import org.eclipse.che.ide.CoreLocalizationConstant;
 import org.eclipse.che.ide.api.action.ActionEvent;
 import org.eclipse.che.ide.api.constraints.Constraints;
 import org.eclipse.che.ide.api.editor.EditorAgent;
+import org.eclipse.che.ide.part.editor.event.SplitEmptyPaneEvent;
 
 import static org.eclipse.che.ide.api.constraints.Direction.HORIZONTALLY;
 
@@ -38,8 +39,13 @@ public class SplitHorizontallyAction extends EditorAbstractAction {
 
     /** {@inheritDoc} */
     @Override
-    public void actionPerformed(ActionEvent e) {
-        Constraints constraints = new Constraints(HORIZONTALLY, getEditorTab(e).getId());
-        editorAgent.openEditor(getEditorFile(e), constraints);
+    public void actionPerformed(ActionEvent event) {
+        try {
+            Constraints constraints = new Constraints(HORIZONTALLY, getEditorTab(event).getId());
+            editorAgent.openEditor(getEditorFile(event), constraints);
+        } catch (IllegalStateException e) {
+            // we haven't opened editor
+            eventBus.fireEvent(new SplitEmptyPaneEvent(HORIZONTALLY, getEditorPane(event)));
+        }
     }
 }

@@ -61,6 +61,17 @@ public interface EditorAgent {
     void closeEditor(EditorPartPresenter editorPart);
 
     /**
+     * Close editor part
+     *
+     * @param editorPart
+     *         the part to close
+     * @param autoClosePane
+     *         the pane which contains {@code editorPart} will be closed when {@code autoClosePane} is {@code true} and the pane doesn't
+     *         contains editors anymore
+     */
+    void closeEditor(EditorPartPresenter editorPart, boolean autoClosePane);
+
+    /**
      * Open editor with given file, call callback when editor fully loaded and initialized.
      * @param file the file to open
      * @param callback
@@ -89,12 +100,14 @@ public interface EditorAgent {
     List<EditorPartPresenter> getOpenedEditors();
 
     /**
-     * Get all opened editors for {@link EditorPartStack} which contains given {@code editorPart}
+     * Get all opened editors for given {@link EditorPartStack}
      *
-     * @return list with all opened editors for evaluated {@link EditorPartStack} or empty list when {@link EditorPartStack} is not found
+     * @param editorPartStack
+     *         editor part stack for searching opened editors
+     * @return list with all opened editors for {@code editorPartStack}
      */
     @NotNull
-    List<EditorPartPresenter> getOpenedEditorsBasedOn(EditorPartPresenter editorPart);
+    List<EditorPartPresenter> getOpenedEditorsFor(EditorPartStack editorPartStack);
 
     /**
      * Get opened editor by related file path for current {@link EditorPartStack}
@@ -139,16 +152,6 @@ public interface EditorAgent {
      */
     @Nullable
     EditorPartPresenter getPreviousFor(EditorPartPresenter editorPart);
-
-    /**
-     * Get last closed editor for {@link EditorPartStack} which contains given {@code editorPart}
-     *
-     * @param editorPart
-     *         the starting point to evaluate last closed editor
-     * @return opened editor or null if it does not exist
-     */
-    @Nullable
-    EditorPartPresenter getLastClosedBasedOn(EditorPartPresenter editorPart);
 
     interface OpenEditorCallback {
         void onEditorOpened(EditorPartPresenter editor);
