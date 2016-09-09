@@ -22,12 +22,21 @@ export class AddVariableDialogController {
    * Default constructor that is using resource
    * @ngInject for Dependency injection
    */
-  constructor($mdDialog) {
+  constructor($mdDialog, $scope) {
     this.$mdDialog = $mdDialog;
     this.updateInProgress = false;
 
     this.name = '';
     this.value = '';
+
+    this.copyVariables = angular.copy(this.variables);
+    delete this.copyVariables[this.name];
+
+    let ctrl = this;
+    // validate environment name uniqueness
+    $scope.isUnique = (name) => {
+      return !ctrl.copyVariables[name];
+    }
   }
 
   /**

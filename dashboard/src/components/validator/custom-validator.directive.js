@@ -11,21 +11,18 @@
 'use strict';
 
 /**
- * @ngdoc directive
- * @name workspaces.details.directive:portValidation
- * @restrict A
- * @element
- *
+ * Defines a directive for custom validation
  * @author Oleksii Kurinnyi
  */
-export class PortValidation {
+export class CustomValidator {
 
   /**
    * Default constructor that is using resource
    * @ngInject for Dependency injection
    */
-  constructor (lodash) {
-    this.lodash = lodash;
+  constructor ($log) {
+
+    this.$log = $log;
 
     this.restrict = 'A';
     this.require = 'ngModel';
@@ -34,16 +31,16 @@ export class PortValidation {
   link($scope, element, attrs, ctrl) {
     // validate only input element
     if ('input' === element[0].localName) {
-      ctrl.$validators.portValidation = (modelValue) => {
-        if (!modelValue) {
-          return;
-        }
 
-        let servers = $scope.$parent.$eval(attrs.portValidation);
-        let isUsed = this.lodash.some(servers, (server) => {
-          return parseInt(server.port, 10) === modelValue;
-        });
-        return !isUsed;
+      let $testScope = $scope.$parent ? $scope.$parent : $scope;
+      let validationFunction = $testScope.$eval(attrs.customValidator);
+
+      if (!angular.isFunction(validationFunction)) {
+        throw new TypeError('Only validation function is acceptable.');
+      }
+
+      ctrl.$validators.customValidator = (modelValue) => {
+        return validationFunction(modelValue);
       }
     }
   }

@@ -22,12 +22,22 @@ export class AddPortDialogController {
    * Default constructor that is using resource
    * @ngInject for Dependency injection
    */
-  constructor($mdDialog) {
+  constructor($mdDialog, $scope, lodash) {
     this.$mdDialog = $mdDialog;
     this.updateInProgress = false;
+    this.lodash = lodash;
 
     this.port = 0;
     this.protocol = 'http';
+
+    let ctrl = this;
+    // validate port uniqueness
+    $scope.isUnique = (port) => {
+      let isUsed = ctrl.lodash.some(ctrl.servers, (server) => {
+        return parseInt(server.port, 10) === port;
+      });
+      return !isUsed;
+    }
   }
 
   /**

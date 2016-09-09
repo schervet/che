@@ -7,9 +7,11 @@
                    che-name="name"
                    che-place-holder="New environment variable name"
                    ng-model="addVariableDialogController.name"
+                   custom-validator="isUnique"
                    aria-label="New environment variable name"
                    required>
           <div ng-message="required">A name is required.</div>
+          <div ng-message="customValidator">This environment variable name is already used.</div>
         </che-input>
       </div>
     </che-label-container>

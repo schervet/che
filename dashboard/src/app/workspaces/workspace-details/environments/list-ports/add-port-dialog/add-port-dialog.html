@@ -7,14 +7,14 @@
                    che-name="port"
                    che-place-holder="New port number"
                    ng-model="addPortDialogController.port"
-                   port-validation="addPortDialogController.servers"
+                   custom-validator="isUnique"
                    type="number"
                    min="1024"
                    max="65535"
                    aria-label="New port number"
                    required>
           <div ng-message="required">A number is required.</div>
-          <div ng-message="portValidation">This port is already in use.</div>
+          <div ng-message="customValidator">This port is already in use.</div>
           <div ng-message="min">A number should be greater than 1023.</div>
           <div ng-message="max">A number should be less than 65536.</div>
         </che-input>

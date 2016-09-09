@@ -22,16 +22,25 @@ export class EditPortDialogController {
    * Default constructor that is using resource
    * @ngInject for Dependency injection
    */
-  constructor($mdDialog, $scope) {
+  constructor($mdDialog, $scope, lodash) {
     this.$mdDialog = $mdDialog;
-    this.$scope = $scope;
+    this.lodash = lodash;
 
     this.updateInProgress = false;
     this.port = parseInt(this.servers[this.serverName].port,10);
     this.protocol = this.servers[this.serverName].protocol;
 
-    this.copyServers = angular.copy(this.servers);
-    delete this.copyServers[this.serverName];
+    this.existServers = angular.copy(this.servers);
+    delete this.existServers[this.serverName];
+
+    let ctrl = this;
+    // validate port uniqueness
+    $scope.isUnique = (port) => {
+      let isUsed = ctrl.lodash.some(ctrl.existServers, (server) => {
+        return parseInt(server.port, 10) === port;
+      });
+      return !isUsed;
+    }
   }
 
   /**
