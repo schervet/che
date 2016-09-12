@@ -16,6 +16,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.web.bindery.event.shared.EventBus;
 
+import org.eclipse.che.api.core.model.machine.Machine;
 import org.eclipse.che.api.core.model.machine.MachineStatus;
 import org.eclipse.che.api.machine.shared.dto.MachineDto;
 import org.eclipse.che.api.promises.client.Operation;
@@ -33,7 +34,6 @@ import org.eclipse.che.ide.api.workspace.event.WorkspaceStoppedEvent;
 import org.eclipse.che.ide.extension.machine.client.MachineLocalizationConstant;
 import org.eclipse.che.ide.extension.machine.client.MachineResources;
 import org.eclipse.che.ide.extension.machine.client.inject.factories.EntityFactory;
-import org.eclipse.che.ide.extension.machine.client.machine.Machine;
 import org.eclipse.che.ide.extension.machine.client.machine.MachineStateEvent;
 import org.eclipse.che.ide.extension.machine.client.perspective.widgets.machine.appliance.MachineAppliancePresenter;
 import org.vectomatic.dom.svg.ui.SVGResource;
@@ -63,7 +63,7 @@ public class MachinePanelPresenter extends BasePresenter implements MachinePanel
     private final MachineAppliancePresenter    appliance;
     private final MachineResources             resources;
     private final Map<String, MachineTreeNode> existingMachineNodes;
-    private final Map<String, Machine>         cachedMachines;
+    private final Map<String, Machine>     cachedMachines;
     private final MachineTreeNode              rootNode;
     private final List<MachineTreeNode>        machineNodes;
     private final AppContext                   appContext;
@@ -154,7 +154,7 @@ public class MachinePanelPresenter extends BasePresenter implements MachinePanel
 
     /** {@inheritDoc} */
     @Override
-    public void onMachineSelected(final MachineDto selectedMachine) {
+    public void onMachineSelected(final Machine selectedMachine) {
         this.selectedMachine = selectedMachine;
 
         if (cachedMachines.containsKey(selectedMachine.getId())) {

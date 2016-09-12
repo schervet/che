@@ -32,7 +32,7 @@ import org.eclipse.che.ide.extension.machine.client.MachineLocalizationConstant;
 import org.eclipse.che.ide.extension.machine.client.MachineResources;
 import org.eclipse.che.ide.extension.machine.client.inject.factories.EntityFactory;
 import org.eclipse.che.ide.extension.machine.client.inject.factories.WidgetsFactory;
-import org.eclipse.che.ide.extension.machine.client.machine.Machine;
+import org.eclipse.che.ide.extension.machine.client.machine.MachineImpl;
 import org.eclipse.che.ide.extension.machine.client.machine.MachineStateEvent;
 import org.eclipse.che.ide.extension.machine.client.perspective.widgets.machine.appliance.MachineAppliancePresenter;
 import org.junit.Before;
@@ -99,9 +99,9 @@ public class MachinePanelPresenterTest {
     @Mock
     private MachineDto                machineDtoFromAPI2;
     @Mock
-    private Machine                   machine1;
+    private MachineImpl               machine1;
     @Mock
-    private Machine                   machine2;
+    private MachineImpl               machine2;
     @Mock
     private MachineDto                selectedMachine1;
     @Mock

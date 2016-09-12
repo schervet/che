@@ -44,7 +44,7 @@ import org.eclipse.che.ide.extension.machine.client.command.CommandType;
 import org.eclipse.che.ide.extension.machine.client.command.CommandTypeRegistry;
 import org.eclipse.che.ide.extension.machine.client.inject.factories.EntityFactory;
 import org.eclipse.che.ide.extension.machine.client.inject.factories.TerminalFactory;
-import org.eclipse.che.ide.extension.machine.client.machine.Machine;
+import org.eclipse.che.ide.extension.machine.client.machine.MachineImpl;
 import org.eclipse.che.ide.extension.machine.client.machine.MachineStateEvent;
 import org.eclipse.che.ide.extension.machine.client.outputspanel.console.CommandConsoleFactory;
 import org.eclipse.che.ide.extension.machine.client.outputspanel.console.CommandOutputConsole;
@@ -336,7 +336,7 @@ public class ProcessesPanelPresenterTest {
         children.add(machineNode);
         presenter.rootNode = new ProcessTreeNode(ROOT_NODE, null, null, null, children);
 
-        Machine machine = mock(Machine.class);
+        MachineImpl machine = mock(MachineImpl.class);
         when(entityFactory.createMachine(anyObject())).thenReturn(machine);
         TerminalPresenter terminal = mock(TerminalPresenter.class);
         when(terminalFactory.create(machine)).thenReturn(terminal);
@@ -409,7 +409,7 @@ public class ProcessesPanelPresenterTest {
         children.add(machineNode);
         presenter.rootNode = new ProcessTreeNode(ROOT_NODE, null, null, null, children);
 
-        Machine machine = mock(Machine.class);
+        MachineImpl machine = mock(MachineImpl.class);
         when(entityFactory.createMachine(anyObject())).thenReturn(machine);
         TerminalPresenter terminal = mock(TerminalPresenter.class);
         when(terminalFactory.create(machine)).thenReturn(terminal);

@@ -83,7 +83,10 @@ public class ProcessTreeRenderer implements NodeRenderer<ProcessTreeNode> {
         SpanElement treeNode;
         switch (node.getType()) {
             case MACHINE_NODE:
-                treeNode = createMachineElement(node, (MachineDto)node.getData());
+                treeNode = createMachineElement(node);
+                break;
+            case MACHINE_OUTPUT_NODE:
+                treeNode = createMachineOutputElement(node);
                 break;
             case COMMAND_NODE:
                 treeNode = createCommandElement(node);
@@ -113,8 +116,9 @@ public class ProcessTreeRenderer implements NodeRenderer<ProcessTreeNode> {
         return machineLabel;
     }
 
-    private SpanElement createMachineElement(final ProcessTreeNode node, final MachineDto machine) {
+    private SpanElement createMachineElement(final ProcessTreeNode node) {
         SpanElement root = Elements.createSpanElement();
+        final MachineDto machine = (MachineDto)node.getData();
         final String machineCategory = machine.getConfig().isDev() ? locale.devMachineCategory() : machine.getConfig().getType();
         root.appendChild(createMachineLabel(machineCategory));
 
@@ -171,7 +175,7 @@ public class ProcessTreeRenderer implements NodeRenderer<ProcessTreeNode> {
                 event.preventDefault();
 
                 if (addTerminalClickHandler != null) {
-                    addTerminalClickHandler.onAddTerminalClick(machine.getWorkspaceId(), machine.getId());
+                    addTerminalClickHandler.onAddTerminalClick(machine);
                 }
             }
         }, true);
@@ -203,6 +207,31 @@ public class ProcessTreeRenderer implements NodeRenderer<ProcessTreeNode> {
 
         Element nameElement = Elements.createSpanElement(resources.getCss().nameLabel());
         nameElement.setTextContent(machine.getConfig().getName());
+        root.appendChild(nameElement);
+
+        return root;
+    }
+
+    private SpanElement createMachineOutputElement(final ProcessTreeNode node) {
+        SpanElement root = Elements.createSpanElement();
+
+        Element statusElement = Elements.createSpanElement(resources.getCss().machineStatus());
+        root.appendChild(statusElement);
+
+        if (node.isRunning()) {
+            statusElement.appendChild(Elements.createDivElement(resources.getCss().machineStatusRunning()));
+        } else {
+            statusElement.appendChild(Elements.createDivElement(resources.getCss().machineStatusPausedLeft()));
+            statusElement.appendChild(Elements.createDivElement(resources.getCss().machineStatusPausedRight()));
+        }
+
+        Tooltip.create(statusElement,
+                       BOTTOM,
+                       MIDDLE,
+                       locale.viewMachineRunningTooltip());
+
+        Element nameElement = Elements.createSpanElement(resources.getCss().nameLabel());
+        nameElement.setTextContent(node.getName());
         root.appendChild(nameElement);
 
         return root;

@@ -10,10 +10,12 @@
  *******************************************************************************/
 package org.eclipse.che.ide.extension.machine.client.machine;
 
-import com.google.common.base.Strings;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 
+import org.eclipse.che.api.core.model.machine.Machine;
+import org.eclipse.che.api.core.model.machine.MachineConfig;
+import org.eclipse.che.api.core.model.machine.MachineRuntimeInfo;
 import org.eclipse.che.api.core.model.machine.MachineStatus;
 import org.eclipse.che.api.core.rest.shared.dto.Link;
 import org.eclipse.che.api.machine.shared.Constants;
@@ -23,7 +25,6 @@ import org.eclipse.che.api.machine.shared.dto.ServerDto;
 import org.eclipse.che.ide.extension.machine.client.MachineLocalizationConstant;
 import org.eclipse.che.ide.extension.machine.client.inject.factories.EntityFactory;
 import org.eclipse.che.ide.extension.machine.client.perspective.widgets.machine.appliance.server.Server;
-import org.eclipse.che.ide.util.loging.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,28 +32,29 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * The class which describes machine entity. The class is wrapper of MachineDescriptor.
+ * The class which describes machine entity.
  *
  * @author Dmitry Shnurenko
  */
-@Deprecated
-//TODO: need to rework this class it must implement org.eclipse.che.api.core.model.machine.Machine
-public class Machine {
+public class MachineImpl implements Machine {
 
     private final MachineDto    descriptor;
-    private final EntityFactory entityFactory;
     private final List<Link>    machineLinks;
 
     private String activeTabName;
 
     @Inject
-    public Machine(MachineLocalizationConstant locale,
-                   EntityFactory entityFactory,
-                   @Assisted MachineDto descriptor) {
-        this.entityFactory = entityFactory;
+    public MachineImpl(MachineLocalizationConstant locale,
+//                       EntityFactory entityFactory,
+                       @Assisted MachineDto descriptor) {
         this.descriptor = descriptor;
         this.machineLinks = descriptor.getLinks();
         this.activeTabName = locale.tabInfo();
+    }
+
+    @Override
+    public MachineConfig getConfig() {
+        return descriptor.getConfig();
     }
 
     /** @return id of current machine */
@@ -68,6 +70,11 @@ public class Machine {
     /** @return state of current machine */
     public MachineStatus getStatus() {
         return descriptor.getStatus();
+    }
+
+    @Override
+    public MachineRuntimeInfo getRuntime() {
+        return descriptor.getRuntime();
     }
 
     /** @return type of current machine */
@@ -129,6 +136,16 @@ public class Machine {
         return descriptor.getWorkspaceId();
     }
 
+    @Override
+    public String getEnvName() {
+        return descriptor.getEnvName();
+    }
+
+    @Override
+    public String getOwner() {
+        return descriptor.getOwner();
+    }
+
     public List<Server> getServersList() {
         List<Server> serversList = new ArrayList<>();
 
@@ -138,9 +155,9 @@ public class Machine {
             String exposedPort = entry.getKey();
             ServerDto descriptor = entry.getValue();
 
-            Server server = entityFactory.createServer(exposedPort, descriptor);
-
-            serversList.add(server);
+//            Server server = entityFactory.createServer(exposedPort, descriptor);
+//
+//            serversList.add(server);
         }
 
         return serversList;
@@ -151,7 +168,7 @@ public class Machine {
         if (this == other) return true;
         if (other == null || getClass() != other.getClass()) return false;
 
-        Machine otherMachine = (Machine)other;
+        MachineImpl otherMachine = (MachineImpl)other;
 
         return Objects.equals(getId(), otherMachine.getId());
 

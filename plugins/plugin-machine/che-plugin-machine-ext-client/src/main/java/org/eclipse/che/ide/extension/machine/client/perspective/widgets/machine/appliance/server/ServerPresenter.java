@@ -14,10 +14,8 @@ import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.inject.Inject;
 
-import org.eclipse.che.ide.extension.machine.client.machine.Machine;
+import org.eclipse.che.api.core.model.machine.Machine;
 import org.eclipse.che.ide.extension.machine.client.perspective.widgets.tab.content.TabPresenter;
-
-import javax.validation.constraints.NotNull;
 
 /**
  * The class contains business logic which allows update server's information for current machine. The class is a tab presenter and
@@ -41,7 +39,7 @@ public class ServerPresenter implements TabPresenter {
      *         machine for which need update information
      */
     public void updateInfo(Machine machine) {
-        view.setServers(machine.getServersList());
+//        view.setServers(machine.getServersList());
     }
 
     /** {@inheritDoc} */

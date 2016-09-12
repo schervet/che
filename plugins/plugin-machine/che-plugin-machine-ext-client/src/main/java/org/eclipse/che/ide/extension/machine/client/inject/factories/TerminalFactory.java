@@ -12,7 +12,7 @@ package org.eclipse.che.ide.extension.machine.client.inject.factories;
 
 import com.google.inject.assistedinject.Assisted;
 
-import org.eclipse.che.ide.extension.machine.client.machine.Machine;
+import org.eclipse.che.api.core.model.machine.Machine;
 import org.eclipse.che.ide.extension.machine.client.perspective.terminal.TerminalPresenter;
 
 import javax.validation.constraints.NotNull;

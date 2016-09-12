@@ -54,14 +54,14 @@ public class MachineTest {
     @Mock
     private AppContext                  appContext;
 
-    private Machine machine;
+    private MachineImpl machine;
 
     @Before
     public void setUp() {
         Map<String, ServerDto> servers = new HashMap<>();
         servers.put(SOME_TEXT, serverDescriptor);
 
-        machine = new Machine(locale, entityFactory, descriptor);
+        machine = new MachineImpl(locale, entityFactory, descriptor);
 
         when(descriptor.getRuntime()).thenReturn(machineRuntimeDto);
         when(descriptor.getConfig()).thenReturn(machineConfig);
@@ -77,7 +77,7 @@ public class MachineTest {
     @Test
     public void defaultActiveTabShouldBeReturned() {
         when(locale.tabInfo()).thenReturn(SOME_TEXT);
-        machine = new Machine(locale, entityFactory, descriptor);
+        machine = new MachineImpl(locale, entityFactory, descriptor);
 
         String tabName = machine.getActiveTabName();
 

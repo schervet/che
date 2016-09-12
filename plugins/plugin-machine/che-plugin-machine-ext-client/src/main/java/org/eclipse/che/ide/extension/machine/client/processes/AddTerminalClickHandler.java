@@ -10,6 +10,8 @@
  *******************************************************************************/
 package org.eclipse.che.ide.extension.machine.client.processes;
 
+import org.eclipse.che.api.core.model.machine.Machine;
+
 import javax.validation.constraints.NotNull;
 
 /**
@@ -25,5 +27,5 @@ public interface AddTerminalClickHandler {
      * @param machineId
      *         id of machine in which the terminal will be added
      */
-    void onAddTerminalClick(@NotNull String workspaceId, @NotNull String machineId);
+    void onAddTerminalClick(@NotNull Machine machine);
 }

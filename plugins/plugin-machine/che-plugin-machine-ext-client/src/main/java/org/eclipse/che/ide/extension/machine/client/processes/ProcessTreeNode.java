@@ -34,6 +34,7 @@ public class ProcessTreeNode {
     public enum ProcessNodeType {
         ROOT_NODE,
         MACHINE_NODE,
+        MACHINE_OUTPUT_NODE,
         COMMAND_NODE,
         TERMINAL_NODE
     }
@@ -67,8 +68,13 @@ public class ProcessTreeNode {
 
         switch (type) {
             case MACHINE_NODE:
-                id = ((MachineDto)data).getId();
-                displayName = ((MachineDto)data).getConfig().getName();
+                String machineName = ((MachineDto)data).getConfig().getName();
+                id = machineName;
+                displayName = machineName;
+                break;
+            case MACHINE_OUTPUT_NODE:
+                id = (String)data;
+                displayName = (String)data;
                 break;
             case COMMAND_NODE:
                 id = data + UUID.uuid();
