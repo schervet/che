@@ -14,7 +14,7 @@ import {ListStacksController} from './list-stacks/list-stacks.controller';
 import {StackItemController} from './list-stacks/stack-item/stack-item.controller';
 import {StackItem} from './list-stacks/stack-item/stack-item.directive';
 
-
+import {StackController} from './stack-details/stack.controller';
 /**
  * @ngdoc controller
  * @name stacks:StacksConfig
@@ -29,6 +29,8 @@ export class StacksConfig {
     register.controller('StackItemController', StackItemController);
     register.directive('stackItem', StackItem);
 
+    register.controller('StackController', StackController);
+
     // config routes
     register.app.config(function ($routeProvider) {
       $routeProvider.accessWhen('/stacks', {
@@ -37,6 +39,12 @@ export class StacksConfig {
         controller: 'ListStacksController',
         controllerAs: 'listStacksController'
       })
+        .accessWhen('/stack/:stackId', {
+          title: (params) => {return params.stackId},
+          templateUrl: 'app/stacks/stack-details/stack.html',
+          controller: 'StackController',
+          controllerAs: 'stackController'
+        })
     });
   }
 }

@@ -49,16 +49,16 @@
                                   che-sort-value='listStacksController.stackOrderBy'
                                   che-sort-item='name'
                                   che-column-title='Name'></che-list-header-column>
-          <che-list-header-column flex-gt-xs="30"
+          <che-list-header-column flex-gt-xs="35"
                                   che-column-title='Description'></che-list-header-column>
           <che-list-header-column flex-gt-xs="30"
                                   che-column-title='Components'></che-list-header-column>
-          <che-list-header-column flex-gt-xs="20"
+          <che-list-header-column flex-gt-xs="18"
                                   che-column-title='Actions'></che-list-header-column>
         </div>
       </div>
     </che-list-header>
-    <che-list ng-show="(listStacksController.stacks | filter:listStacksController.stackFilter).length > 0">
+    <che-list ng-show="(listStacksController.stacks | filter:listStacksController.stackFilter).length > 0" class="stack-list">
       <stack-item
               ng-repeat="stack in listStacksController.stacks | orderBy:[listStacksController.stackOrderBy, 'name'] | filter:listStacksController.stackFilter"
               ng-model="listStacksController.stackSelectionState[stack.id]"
