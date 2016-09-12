@@ -49,7 +49,7 @@ export class ListPortsController {
    */
   updateSelectedStatus() {
     this.serversSelectedNumber = 0;
-    this.isBulkChecked = true;
+    this.isBulkChecked = !!this.serversList.length;
     this.serversList.forEach((server) => {
       if (this.serversSelectedStatus[server.name]) {
         this.serversSelectedNumber++;

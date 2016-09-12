@@ -204,7 +204,7 @@ export class WorkspaceDetailsController {
   }
 
   /**
-   * Callback which is called from WorkspaceEnvironmentsController
+   * Callback which is called in order to update workspace config
    * @returns {Promise}
    */
   updateWorkspaceConfig() {

@@ -17,7 +17,19 @@
 export class EnvironmentManager {
 
   constructor() {
-    this.WS_AGENT_NAME = 'ws-agent';
+    this.WS_AGENT_NAME = 'org.eclipse.che.ws-agent';
+  }
+
+  canRenameMachine() {
+    return false;
+  }
+
+  canDeleteMachine() {
+    return false;
+  }
+
+  canEditEnvVariables() {
+    return false;
   }
 
   /**
@@ -38,14 +50,27 @@ export class EnvironmentManager {
    * @returns environment's configuration
    */
   getEnvironment(environment, machines) {
-    return {};
+    let newEnvironment = angular.copy(environment);
+
+    machines.forEach((machine) => {
+      let machineName = machine.name;
+
+      if (angular.isUndefined(newEnvironment.machines[machineName])) {
+        newEnvironment.machines[machineName] = {'attributes': {}};
+      }
+      newEnvironment.machines[machineName].attributes.memoryLimitBytes = machine.attributes.memoryLimitBytes;
+      newEnvironment.machines[machineName].agents = angular.copy(machine.agents);
+      newEnvironment.machines[machineName].servers = angular.copy(machine.servers);
+    });
+
+    return newEnvironment;
   }
 
   /**
    * Returns whether machine is developer or not.
    *
    * @param machine
-   * @returns {*}
+   * @returns {boolean}
    */
   isDev(machine) {
     return machine.agents && machine.agents.includes(this.WS_AGENT_NAME);
@@ -70,12 +95,26 @@ export class EnvironmentManager {
     }
   }
 
-  getServers() {
-    //TODO
+  getServers(machine) {
+    return machine.servers || {};
   }
 
-  setServer() {
-    //TODO
+  setServers(machine, servers) {
+    machine.servers = angular.copy(servers);
+  }
+
+  /**
+   * Returns memory limit from machine's attributes
+   *
+   * @param machine
+   * @returns {*} memory limit in bytes
+   */
+  getMemoryLimit(machine) {
+    if (machine && machine.attributes && machine.attributes.memoryLimitBytes) {
+      return machine.attributes.memoryLimitBytes;
+    }
+
+    return -1;
   }
 
   /**
@@ -88,5 +127,9 @@ export class EnvironmentManager {
   setMemoryLimit(machine, limit) {
     machine.attributes = machine.attributes ? machine.attributes : {};
     machine.attributes.memoryLimitBytes = limit;
+  }
+
+  getEnvVariables() {
+    return null;
   }
 }

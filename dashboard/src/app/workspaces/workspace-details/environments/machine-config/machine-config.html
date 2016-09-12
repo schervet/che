@@ -21,7 +21,9 @@
          ng-class="{'fa-chevron-circle-down': workspaceMachineConfigController.machineIsOpened, 'fa-chevron-circle-up': !workspaceMachineConfigController.machineIsOpened}"></i>
     </div>
     <div class="config-title">{{workspaceMachineConfigController.machineName}}</div>
-    <div class="config-title-action-edit" ng-click="workspaceMachineConfigController.showEditDialog($event)">
+    <div class="config-title-action-edit"
+         ng-if="workspaceMachineConfigController.machineConfig.canRenameMachine"
+         ng-click="workspaceMachineConfigController.showEditDialog($event)">
       <i class="config-title-action-edit fa fa-pencil" aria-hidden="true"></i>
     </div>
   </div>
@@ -30,17 +32,12 @@
   <div class="config-params" ng-show="workspaceMachineConfigController.machineIsOpened">
 
     <!-- Source -->
-    <che-label-container che-label-name="Source">
-      <div layout="column" class="config-input">
-        <che-input che-name="source"
-                   che-place-holder="Source"
-                   che-width="auto"
-                   ng-model="workspaceMachineConfigController.source"
-                   aria-label="Machine {{workspaceMachineConfigController.machineName}} source"
-                   required
-                   readonly>
-          <div ng-message="required">A source is required.</div>
-        </che-input>
+    <che-label-container che-label-name="Source"
+                         ng-if="workspaceMachineConfigController.machineConfig.source">
+      <div class="config-paragraph">
+        <p ng-repeat="(key, val) in workspaceMachineConfigController.machineConfig.source">
+          <span class="recipe-item-name" ng-hide="$first && $last">{{key}}:</span>{{val}}
+        </p>
       </div>
     </che-label-container>
 
@@ -66,15 +63,16 @@
     <!-- Ports -->
     <che-label-container che-label-name="Ports">
       <div class="config-params-table">
-        <list-ports servers="workspaceMachineConfigController.machineConfigs[workspaceMachineConfigController.machineName].servers"
+        <list-ports servers="workspaceMachineConfigController.machineConfig.servers"
                     servers-on-change="workspaceMachineConfigController.updateServers()"></list-ports>
       </div>
     </che-label-container>
 
     <!-- Environment Variables-->
-    <che-label-container che-label-name="Environment variables">
+    <che-label-container che-label-name="Environment variables"
+                         ng-if="workspaceMachineConfigController.machineConfig.canEditEnvVariables">
       <div class="config-params-table">
-        <list-env-variables env-variables="workspaceMachineConfigController.envVariables"
+        <list-env-variables env-variables="workspaceMachineConfigController.machineConfig.envVariables"
                             env-variables-on-change="workspaceMachineConfigController.updateEnvVariables()"></list-env-variables>
       </div>
     </che-label-container>
@@ -82,10 +80,11 @@
     <!-- Delete -->
     <che-label-container class="config-delete-label"
                          che-label-name="Delete machine"
-                         che-label-description="Environment should contain at least one machine.">
+                         che-label-description="Environment should contain at least one machine."
+                         ng-if="workspaceMachineConfigController.machineConfig.canDeleteMachine">
       <che-button-danger che-button-title="Delete"
-                         ng-disabled="workspaceMachineConfigController.machinesNumber === 1"
-                         ng-click="workspaceMachineConfigController.deleteMachine($event)"></che-button-danger>
+                         ng-disabled="workspaceMachineConfigController.machinesList.length === 1"
+                         ng-click="workspaceMachineConfigController.deleteMachine()"></che-button-danger>
     </che-label-container>
   </div>
 </div>

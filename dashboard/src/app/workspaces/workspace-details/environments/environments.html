@@ -38,25 +38,36 @@
     </ng-form>
   </che-label-container>
 
-  <!-- Recipe -->
-  <che-label-container che-label-name="Recipe">
+  <!-- Recipe Content-->
+  <che-label-container che-label-name="Recipe"
+                       ng-if="workspaceEnvironmentsController.environment.recipe.content">
     <div layout="row" layout-wrap>
       <div flex class="recipe-editor">
         <ui-codemirror ui-codemirror="workspaceEnvironmentsController.editorOptions"
-                       ng-model="workspaceEnvironmentsController.environmentValue.recipe.content"></ui-codemirror>
+                       ng-model="workspaceEnvironmentsController.environment.recipe.content"></ui-codemirror>
       </div>
     </div>
   </che-label-container>
+  <!-- OR Location -->
+  <che-label-container che-label-name="Recipe Location"
+                       ng-if="workspaceEnvironmentsController.recipeType !== 'dockerimage' && workspaceEnvironmentsController.environment.recipe.location">
+    <che-text-info che-text="workspaceEnvironmentsController.environment.recipe.location"
+                   che-href="workspaceEnvironmentsController.environment.recipe.location"
+                   che-copy-clipboard="true"
+                   class="recipe-location"></che-text-info>
+  </che-label-container>
 
   <!-- Machines -->
-  <che-label-container ng-if="workspaceEnvironmentsController.environmentValue.machines.length"
+  <che-label-container ng-if="workspaceEnvironmentsController.environment.machines.length"
                        che-label-name="Machines"
                        class="che-label-container-last">
   </che-label-container>
-  <workspace-machine-config ng-repeat="(machineName, machineConfig) in workspaceEnvironmentsController.workspaceConfig.environments[workspaceEnvironmentsController.environmentName].machines"
-                            machine-name="machineName"
-                            machine-configs="workspaceEnvironmentsController.workspaceConfig.environments[workspaceEnvironmentsController.environmentName].machines"
-                            environment-recipe="workspaceEnvironmentsController.environmentRecipe"
+  <workspace-machine-config ng-repeat="machine in workspaceEnvironmentsController.machines"
+                            machine-name="machine.name"
+                            machines-list="workspaceEnvironmentsController.machines"
+                            environment-manager="workspaceEnvironmentsController.environmentManager"
+                            machine-name-on-change="workspaceEnvironmentsController.updateMachineName(oldName,newName)"
                             machine-config-on-change="workspaceEnvironmentsController.updateMachineConfig()"
+                            machine-on-delete="workspaceEnvironmentsController.deleteMachine(name)"
                             machine-is-opened="$first"></workspace-machine-config>
 </div>

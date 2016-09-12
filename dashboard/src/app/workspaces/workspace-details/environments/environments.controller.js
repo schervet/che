@@ -22,15 +22,15 @@ export class WorkspaceEnvironmentsController {
    * Default constructor that is using resource injection
    * @ngInject for Dependency injection
    */
-  constructor($q, $log, $scope, $timeout) {
+  constructor($q, $log, $scope, $timeout, cheEnvironmentRegistry) {
     this.$q = $q;
     this.$log = $log;
     this.$scope = $scope;
+    this.cheEnvironmentRegistry = cheEnvironmentRegistry;
 
     this.editorOptions = {
       lineWrapping: true,
       lineNumbers: false,
-      mode: 'text/x-yaml',
       readOnly: true,
       gutters: [],
       onLoad: (editor) => {
@@ -48,45 +48,14 @@ export class WorkspaceEnvironmentsController {
    */
   init() {
     this.newEnvironmentName = this.environmentName;
-    this.environmentValue = this.workspaceConfig.environments[this.environmentName];
-    this.environmentRecipe = this.parseRecipe(this.environmentValue.recipe.content, this.environmentValue.recipe.contentType);
-  }
+    this.environment = this.workspaceConfig.environments[this.environmentName];
 
-  /**
-   * Parses recipe content
-   * @param recipeContent {string}
-   * @param recipeContentType {string}
-   * @returns {object}
-   */
-  parseRecipe(recipeContent, recipeContentType) {
-    let recipe = {};
-    if (/yaml/i.test(recipeContentType)){
-      try {
-        recipe = jsyaml.load(recipeContent);
-      } catch (e) {
-        this.$log.error(e);
-      }
-    }
-    return recipe;
-  }
+    this.recipeType = this.environment.recipe.type;
+    this.environmentManager = this.cheEnvironmentRegistry.getEnvironmentManager(this.recipeType);
 
-  /**
-   * Dumps recipe object
-   * @param recipe {object}
-   * @param recipeContentType {string}
-   * @returns {string}
-   */
-  stringifyRecipe(recipe, recipeContentType) {
-    let recipeContent = '';
-    if (/yaml/i.test(recipeContentType)) {
-      try {
-        recipeContent = jsyaml.dump(recipe);
-      } catch (e) {
-        this.$log.error(e);
-      }
-    }
+    this.editorOptions.mode = this.environmentManager.editorMode;
 
-    return recipeContent;
+    this.machines = this.environmentManager.getMachines(this.environment);
   }
 
   /**
@@ -98,7 +67,7 @@ export class WorkspaceEnvironmentsController {
       return;
     }
 
-    this.workspaceConfig.environments[this.newEnvironmentName] = this.environmentValue;
+    this.workspaceConfig.environments[this.newEnvironmentName] = this.environment;
     delete this.workspaceConfig.environments[this.environmentName];
 
     if (this.workspaceConfig.defaultEnv === this.environmentName) {
@@ -109,17 +78,40 @@ export class WorkspaceEnvironmentsController {
   }
 
   /**
-   * Callback which is called from WorkspaceMachineConfigController
+   * Callback which is called in order to update environment config
    * @returns {Promise}
    */
   updateMachineConfig() {
-    let newRecipeContent = this.stringifyRecipe(this.environmentRecipe, this.environmentValue.recipe.contentType);
-    if (newRecipeContent) {
-      this.workspaceConfig.environments[this.environmentName].recipe.content = newRecipeContent;
-    }
+    let newEnvironment = this.environmentManager.getEnvironment(this.environment, this.machines);
+    this.workspaceConfig.environments[this.newEnvironmentName] = newEnvironment;
+    return this.doUpdateEnvironments();
+  }
+
+  /**
+   * Callback which is called in order to rename specified machine
+   * @param oldName
+   * @param newName
+   * @returns {*}
+   */
+  updateMachineName(oldName, newName) {
+    let newEnvironment = this.environmentManager.renameMachine(this.environment, oldName, newName);
+    this.workspaceConfig.environments[this.newEnvironmentName] = newEnvironment;
     return this.doUpdateEnvironments().then(() => {
       this.init();
-    });
+    })
+  }
+
+  /**
+   * Callback which is called in order to delete specified machine
+   * @param name
+   * @returns {*}
+   */
+  deleteMachine(name) {
+    let newEnvironment = this.environmentManager.deleteMachine(this.environment, name);
+    this.workspaceConfig.environments[this.newEnvironmentName] = newEnvironment;
+    return this.doUpdateEnvironments().then(() => {
+      this.init();
+    })
   }
 
   /**

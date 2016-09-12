@@ -22,10 +22,11 @@ export class WorkspaceMachineConfigController {
    * Default constructor that is using resource injection
    * @ngInject for Dependency injection
    */
-  constructor($mdDialog, $log, $scope, $timeout) {
+  constructor($mdDialog, $log, $scope, $timeout, lodash) {
     this.$mdDialog = $mdDialog;
     this.$log = $log;
     this.$timeout = $timeout;
+    this.lodash = lodash;
 
     this.timeoutPromise;
     $scope.$on('$destroy', () => {
@@ -35,41 +36,53 @@ export class WorkspaceMachineConfigController {
     });
 
     this.init();
+
+    // check machine name uniqueness
+    let ctrl = this;
+    $scope.isUnique = (newMachineName) => {
+      let isUsed = ctrl.lodash.some(ctrl.machinesList, (machine) => {
+        return newMachineName !== ctrl.machineName && newMachineName === machine.name;
+      });
+      return !isUsed;
+    };
   }
 
   /**
    * Sets initial values
    */
   init() {
-    this.devMachineAgentName = 'ws-agent';
-    this.isDev = this.machineConfigs[this.machineName].agents.includes(this.devMachineAgentName);
-    this.newDev = this.isDev;
+    this.machine = this.lodash.find(this.machinesList, (machine) => {
+      return machine.name === this.machineName;
+    });
 
-    let machineRecipe = this.environmentRecipe.services[this.machineName];
-    this.source = machineRecipe.image;
-    this.ram = machineRecipe.mem_limit;
-    this.newRam = this.ram;
+    this.machineConfig = {
+      source: this.environmentManager.getSource(this.machine),
+      isDev: this.environmentManager.isDev(this.machine),
+      memoryLimitBytes: this.environmentManager.getMemoryLimit(this.machine),
+      servers: this.environmentManager.getServers(this.machine),
+      canEditEnvVariables: this.environmentManager.canEditEnvVariables(this.machine),
+      envVariables: this.environmentManager.getEnvVariables(this.machine),
+      canRenameMachine: this.environmentManager.canRenameMachine(this.machine),
+      canDeleteMachine: this.environmentManager.canDeleteMachine(this.machine)
+    };
 
-    this.envVariables = machineRecipe.environment || {};
+    this.newDev = this.machineConfig.isDev;
+
+    this.newRam = this.machineConfig.memoryLimitBytes;
   }
 
   /**
-   * Modifies agents list in machine: adds or removes 'ws-agent'
+   * Modifies agents list in order to add or remove 'ws-agent'
    */
   updateDev() {
     this.$timeout.cancel(this.timeoutPromise);
 
-    if (this.isDev === this.newDev) {
+    if (this.machineConfig.isDev === this.newDev) {
       return;
     }
 
     this.timeoutPromise = this.$timeout(() => {
-      let agentIndex = this.machineConfigs[this.machineName].agents.indexOf(this.devMachineAgentName);
-      if (this.newDev && agentIndex === -1) {
-        this.machineConfigs[this.machineName].agents.push(this.devMachineAgentName);
-      } else if (!this.newDev && agentIndex > -1) {
-        this.machineConfigs[this.machineName].agents.splice(agentIndex, 1);
-      }
+      this.environmentManager.setDev(this.machine, this.newDev);
 
       this.doUpdateConfig().then(() => {
         this.init();
@@ -89,7 +102,8 @@ export class WorkspaceMachineConfigController {
     }
 
     this.timeoutPromise = this.$timeout(() => {
-      this.environmentRecipe.services[this.machineName].mem_limit = this.newRam;
+      this.environmentManager.setMemoryLimit(this.machine, this.newRam);
+
       this.doUpdateConfig().then(() => {
         this.init();
       });
@@ -97,23 +111,20 @@ export class WorkspaceMachineConfigController {
   }
 
   /**
-   * Callback which is called from ListPortsController
+   * Callback which is called in order to update list of servers
    * @returns {Promise}
    */
   updateServers() {
+    this.environmentManager.setServers(this.machine, this.machineConfig.servers);
     return this.doUpdateConfig();
   }
 
   /**
-   * Callback which is called from ListEnvVariablesController
+   * Callback which is called in order to update list of environment variables
    * @returns {Promise}
    */
   updateEnvVariables() {
-    if (Object.keys(this.envVariables).length) {
-      this.environmentRecipe.services[this.machineName].environment = this.envVariables;
-    } else {
-      delete this.environmentRecipe.services[this.machineName].environment;
-    }
+    this.environmentManager.setEnvVariables(this.machine, this.machineConfig.envVariables);
 
     return this.doUpdateConfig().then(() => {
       this.init();
@@ -150,7 +161,6 @@ export class WorkspaceMachineConfigController {
   /**
    * Updates machine name
    * @param newMachineName {string} new machine name
-   * @returns {Promise}
    */
   updateMachineName(newMachineName) {
     if (this.machineName === newMachineName) {
@@ -159,22 +169,25 @@ export class WorkspaceMachineConfigController {
       return defer.promise;
     }
 
-    // update config
-    this.machineConfigs[newMachineName] = this.machineConfigs[this.machineName];
-    delete this.machineConfigs[this.machineName];
-
-    // update recipe
-    this.environmentRecipe.services[newMachineName] = this.environmentRecipe.services[this.machineName];
-    delete this.environmentRecipe.services[this.machineName];
-
-    return this.doUpdateConfig();
+    return this.machineNameOnChange({
+      oldName: this.machineName,
+      newName: newMachineName
+    }).then(() => {
+      this.init();
+    });
   }
 
-  // TODO
+  /**
+   * Deletes machine
+   */
   deleteMachine() {
     this.showDeleteConfirmation().then(() => {
-      // todo
-    })
+      this.machineOnDelete({
+        name: this.machineName
+      }).then(() => {
+        this.init();
+      });
+    });
   }
 
   /**

@@ -40,9 +40,11 @@ export class WorkspaceMachineConfig {
 
     this.scope = {
       machineName: '=',
-      machineConfigs: '=',
-      environmentRecipe: '=',
+      machinesList: '=',
+      environmentManager: '=',
+      machineNameOnChange: '&',
       machineConfigOnChange: '&',
+      machineOnDelete: '&',
       machineIsOpened: '='
     };
   }
