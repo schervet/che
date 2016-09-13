@@ -20,11 +20,26 @@ export class StackController {
    * Default constructor that is using resource injection
    * @ngInject for Dependency injection
    */
-  constructor($log, $route, cheStack, $mdDialog, cheNotification) {
+  constructor($route, $location, $log, $filter, cheStack, $mdDialog, cheNotification, $timeout) {
+    this.$location = $location;
     this.$log = $log;
+    this.$filter = $filter;
     this.cheStack = cheStack;
     this.$mdDialog = $mdDialog;
     this.cheNotification = cheNotification;
+    this.$timeout = $timeout;
+
+    this.editorOptions = {
+      lineWrapping: true,
+      lineNumbers: true,
+      matchBrackets: true,
+      mode: 'application/json',
+      onLoad: (editor) => {
+        this.$timeout(() => {
+          editor.refresh();
+        }, 500);
+      }
+    };
 
     this.isCreation = $route.current.params.stackId === 'create';
     if (this.isCreation) {
@@ -62,27 +77,80 @@ export class StackController {
     });
   }
 
+
+
   prepareStackData() {
+    delete this.stack.links;
     this.stackName = angular.copy(this.stack.name);
+    this.stackContent = this.$filter('json')(this.stack);
   }
 
+  /**
+   * Updates stack info.
+   * @param isFormValid {Boolean} true if form is valid
+   */
+  updateStack(isFormValid) {
+    this.stackContent = this.$filter('json')(this.stack);
+
+    if (this.changesPromise) {
+      this.$timeout.cancel(this.changesPromise);
+    }
+
+    if (isFormValid === false || this.stack.name === this.stackName) {
+      return;
+    }
+
+    this.changesPromise = this.$timeout(() => {
+      this.isLoading = true;
+      let stackData = angular.copy(this.stack);
+      stackData.name = this.stackName;
+
+      this.cheStack.updateStack(this.stack.id, stackData).then((stack) => {
+        this.cheNotification.showInfo('Stack is successfully updated.');
+        this.stack = stack;
+        this.isLoading = false;
+        this.prepareStackData();
+      }, (error) => {
+        this.isLoading = false;
+        this.cheNotification.showError(error.data.message !== null ? error.data.message : 'Update stack failed.');
+        this.$log.error(error);
+      });
+    }, 1000);
+  }
+
+  saveStack() {
+    //TODO
+    this.cheStack.updateStack(this.stack.id, this.stackContent).then((stack) => {
+      this.cheNotification.showInfo('Stack is successfully updated.');
+      this.stack = stack;
+      this.isLoading = false;
+      this.prepareStackData();
+    }, (error) => {
+      this.isLoading = false;
+      this.cheNotification.showError(error.data.message !== null ? error.data.message : 'Update stack failed.');
+      this.$log.error(error);
+    });
+  }
 
   deleteStack(event) {
-    var confirm = this.$mdDialog.confirm()
-      .title('Would you like to delete the project ' + this.projectDetails.name)
-      .content('Please confirm for the project removal.')
-      .ariaLabel('Remove project')
-      .ok('Delete it!')
+    let confirmTitle = 'Would you like to delete ' + this.stack.name + '?';
+
+    let confirm = this.$mdDialog.confirm()
+      .title(confirmTitle)
+      .ariaLabel('Remove stack')
+      .ok('Delete!')
       .cancel('Cancel')
-      .clickOutsideToClose(true)
-      .targetEvent(event);
+      .clickOutsideToClose(true);
+
     this.$mdDialog.show(confirm).then(() => {
-      // remove it !
-      let promise = this.projectService.remove(this.projectDetails.name);
-      promise.then(() => {
-        this.$location.path('/workspace/' + this.workspace.namespace + '/' + this.workspace.config.name + '/projects');
+      this.loading = true;
+      this.cheStack.deleteStack(this.stack.id).then(() => {
+        this.cheNotification.showInfo('Stack <b>' + this.stack.name + '</b> has been successfully removed.');
+        this.$location.path('/stacks');
       }, (error) => {
-        this.$log.log('error', error);
+        this.loading = false;
+        let message = 'Failed to delete <b>' + this.stack.name + '</b> stack.' + (error && error.message) ? error.message : "";
+        this.cheNotification.showError(message);
       });
     });
   }

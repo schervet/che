@@ -1,4 +1,4 @@
-<che-toolbar che-title="{{stackController.stackId}}"
+<che-toolbar che-title="{{stackController.stack ? stackController.stack.name : stackController.stackId}}"
              che-title-icons-controller="stackController"
              che-breadcrumb-title="All stacks"
              che-breadcrumb-href="#/stacks"
@@ -34,7 +34,14 @@
   <!-- Configuration -->
   <che-label-container che-label-name="Configuration">
     <div>
-
+      <textarea ui-codemirror="stackController.editorOptions"
+                ng-model="stackController.stackContent"
+                aria-label="Stack configuration editor">
+      </textarea>
+      <div layout="row">
+        <che-button-primary che-button-title="Save"
+                               ng-click="stackController.saveStack()"></che-button-primary>
+      </div>
     </div>
   </che-label-container>
 
@@ -44,7 +51,7 @@
                        che-label-name="Delete stack"
                        che-label-description="This is irreversible. This stack will not be available when creating a workspace.">
     <che-button-danger che-button-title="Delete"
-                       ng-click="stackController.stackWorkspace($event)"></che-button-danger>
+                       ng-click="stackController.deleteStack($event)"></che-button-danger>
   </che-label-container>
 
 </md-content>

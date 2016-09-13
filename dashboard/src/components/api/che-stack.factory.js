@@ -37,6 +37,7 @@ export class CheStack {
     this.remoteStackAPI = this.$resource('/api/stack', {}, {
       getStacks: {method: 'GET', url: '/api/stack', isArray: true},
       getStack: {method: 'GET', url: '/api/stack/:stackId'},
+      updateStack: {method: 'PUT', url: '/api/stack/:stackId'},
       createStack: {method: 'POST', url: '/api/stack'},
       deleteStack: {method: 'DELETE', url: '/api/stack/:stackId'}
     });
@@ -100,6 +101,15 @@ export class CheStack {
    */
   fetchStack(stackId) {
     return this.remoteStackAPI.getStack({stackId: stackId}).$promise;
+  }
+
+  /**
+   * Update pointed stack.
+   * @param stackId stack's id
+   * @returns {$promise|*|T.$promise}
+   */
+  updateStack(stackId, stack) {
+    return this.remoteStackAPI.updateStack({stackId: stackId}, stack).$promise;
   }
 
   /**
