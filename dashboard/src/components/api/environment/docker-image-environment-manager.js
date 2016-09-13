@@ -23,7 +23,6 @@ export class DockerImageEnvironmentManager extends EnvironmentManager {
 
   constructor() {
     super();
-    //TODO define image specific stuff
   }
 
   /**
@@ -33,7 +32,17 @@ export class DockerImageEnvironmentManager extends EnvironmentManager {
    * @returns {Array} list of machines defined in environment
    */
   getMachines(environment) {
-    return [];
+    let machines = [];
+
+    Object.keys(environment.machines).forEach((machineName) => {
+      let machine = angular.copy(environment.machines[machineName]);
+      machine.name = machineName;
+      machine.recipe = environment.recipe;
+
+      machines.push(machine);
+    });
+
+    return machines;
   }
 
   /**
@@ -44,6 +53,15 @@ export class DockerImageEnvironmentManager extends EnvironmentManager {
    * @returns environment's configuration
    */
   getEnvironment(environment, machines) {
-    return {};
+    return super.getEnvironment(environment, machines);
   }
-}
+
+  /**
+   * Returns a dockerimage.
+   *
+   * @param machine {object}
+   * @returns {{image: string}}
+   */
+  getSource(machine) {
+    return {image: machine.recipe.location};
+  }}
