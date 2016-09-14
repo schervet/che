@@ -80,7 +80,7 @@ public class MachineStateNotifierTest {
 
     @Before
     public void setUp() {
-        statusNotifier = new MachineStatusNotifier(eventBus, machineServiceClient, notificationManager, locale, loader);
+//        statusNotifier = new MachineStatusNotifier(eventBus, machineServiceClient, notificationManager, locale, loader);
         eventBus.addHandler(MachineStateEvent.TYPE, handler);
 
         when(machine.getConfig()).thenReturn(machineConfig);
@@ -88,7 +88,7 @@ public class MachineStateNotifierTest {
         when(machineStatusChangedEvent.getMachineId()).thenReturn(MACHINE_ID);
         when(machineStatusChangedEvent.getWorkspaceId()).thenReturn(WORKSPACE_ID);
         when(machineStatusChangedEvent.getMachineName()).thenReturn(MACHINE_NAME);
-        when(machineServiceClient.getMachine(WORKSPACE_ID, MACHINE_ID)).thenReturn(machinePromise);
+//        when(machineServiceClient.getMachine(WORKSPACE_ID, MACHINE_ID)).thenReturn(machinePromise);
         when(machinePromise.then(Matchers.<Operation<MachineDto>>anyObject())).thenReturn(machinePromise);
         when(machinePromise.catchError(Matchers.<Operation<PromiseError>>anyObject())).thenReturn(machinePromise);
     }

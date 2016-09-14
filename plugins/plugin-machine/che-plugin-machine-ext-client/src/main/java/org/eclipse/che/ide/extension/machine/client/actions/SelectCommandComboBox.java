@@ -17,6 +17,9 @@ import com.google.inject.Singleton;
 import com.google.web.bindery.event.shared.EventBus;
 
 import org.eclipse.che.api.core.model.machine.Machine;
+import org.eclipse.che.api.core.model.machine.MachineConfig;
+import org.eclipse.che.ide.api.machine.MachineEntity;
+import org.eclipse.che.ide.api.machine.MachineManager;
 import org.eclipse.che.ide.api.machine.MachineServiceClient;
 import org.eclipse.che.ide.api.machine.events.WsAgentStateEvent;
 import org.eclipse.che.ide.api.machine.events.WsAgentStateHandler;
@@ -85,7 +88,7 @@ public class SelectCommandComboBox extends AbstractPerspectiveAction implements 
     private final Map<String, Machine>        registeredMachineMap;
     private final ActionManager               actionManager;
     private final WorkspaceServiceClient      workspaceServiceClient;
-    private final MachineServiceClient        machineServiceClient;
+    private final MachineManager              machineManager;
     private final CommandTypeRegistry         commandTypeRegistry;
     private final DropDownWidget              commandsListWidget;
     private final DropDownWidget              machinesListWidget;
@@ -103,7 +106,7 @@ public class SelectCommandComboBox extends AbstractPerspectiveAction implements 
                                  EventBus eventBus,
                                  DropDownListFactory dropDownListFactory,
                                  WorkspaceServiceClient workspaceServiceClient,
-                                 MachineServiceClient machineServiceClient,
+                                 MachineManager machineManager,
                                  CommandTypeRegistry commandTypeRegistry,
                                  EditCommandsPresenter editCommandsPresenter,
                                  AppContext appContext) {
@@ -115,7 +118,7 @@ public class SelectCommandComboBox extends AbstractPerspectiveAction implements 
         this.resources = resources;
         this.actionManager = actionManager;
         this.workspaceServiceClient = workspaceServiceClient;
-        this.machineServiceClient = machineServiceClient;
+        this.machineManager = machineManager;
         this.commandTypeRegistry = commandTypeRegistry;
         this.workspaceId = appContext.getWorkspaceId();
 
@@ -322,9 +325,9 @@ public class SelectCommandComboBox extends AbstractPerspectiveAction implements 
     }
 
     private void loadMachines() {
-        machineServiceClient.getMachines(workspaceId).then(new Operation<List<MachineDto>>() {
+        machineManager.getMachines(workspaceId).then(new Operation<List<MachineEntity>>() {
             @Override
-            public void apply(List<MachineDto> machines) throws OperationException {
+            public void apply(List<MachineEntity> machines) throws OperationException {
                 addMachineActions(machines);
             }
         });
@@ -369,8 +372,8 @@ public class SelectCommandComboBox extends AbstractPerspectiveAction implements 
         updateMachineActions();
     }
 
-    private void addMachineActions(List<MachineDto> machines) {
-        for (MachineDto machine : machines) {
+    private void addMachineActions(List<MachineEntity> machines) {
+        for (MachineEntity machine : machines) {
             registeredMachineMap.put(machine.getId(), machine);
         }
 
@@ -395,14 +398,14 @@ public class SelectCommandComboBox extends AbstractPerspectiveAction implements 
             return;
         }
 
-        final List<Map.Entry<String, MachineDto>> machineEntryList = new LinkedList(registeredMachineMap.entrySet());
+        final List<Map.Entry<String, Machine>> machineEntryList = new LinkedList(registeredMachineMap.entrySet());
         // defined MachineDto Comparator here
-        Collections.sort(machineEntryList, new MachineDtoListEntryComparator());
+        Collections.sort(machineEntryList, new MachineListEntryComparator());
 
         String machineCategory = null;
-        for (Map.Entry<String, MachineDto> machineEntry : machineEntryList) {
-            final MachineDto machine = machineEntry.getValue();
-            final MachineConfigDto machineConfig = machine.getConfig();
+        for (Map.Entry<String, Machine> machineEntry : machineEntryList) {
+            final Machine machine = machineEntry.getValue();
+            final MachineConfig machineConfig = machine.getConfig();
 
             if (!this.getMachineCategory(machineConfig).equals(machineCategory)) {
                 machineCategory = this.getMachineCategory(machineConfig);
@@ -414,7 +417,7 @@ public class SelectCommandComboBox extends AbstractPerspectiveAction implements 
         machinesListWidget.updatePopup();
 
         if (machinesListWidget.getSelectedName() == null && machinesActions.getChildrenCount() > 0) {
-            MachineDto firstMachine = machineEntryList.get(0).getValue();
+            Machine firstMachine = machineEntryList.get(0).getValue();
             if (firstMachine == null) {
                 return;
             }
@@ -422,7 +425,7 @@ public class SelectCommandComboBox extends AbstractPerspectiveAction implements 
         }
     }
 
-    private String getMachineCategory(MachineConfigDto machineConfig) {
+    private String getMachineCategory(MachineConfig machineConfig) {
         if (machineConfig.isDev()) {
             return locale.devMachineCategory();
         }
@@ -441,11 +444,11 @@ public class SelectCommandComboBox extends AbstractPerspectiveAction implements 
         workspaceRunning = false;
     }
 
-    private class MachineDtoListEntryComparator implements Comparator<Map.Entry<String, MachineDto>> {
+    private class MachineListEntryComparator implements Comparator<Map.Entry<String, Machine>> {
         @Override
-        public int compare(Map.Entry<String, MachineDto> o1, Map.Entry<String, MachineDto> o2) {
-            final MachineDto firstMachine = o1.getValue();
-            final MachineDto secondMachine = o2.getValue();
+        public int compare(Map.Entry<String, Machine> o1, Map.Entry<String, Machine> o2) {
+            final Machine firstMachine = o1.getValue();
+            final Machine secondMachine = o2.getValue();
 
             if (firstMachine == null) {
                 return -1;
@@ -454,8 +457,8 @@ public class SelectCommandComboBox extends AbstractPerspectiveAction implements 
                 return 1;
             }
 
-            final MachineConfigDto firstMachineConfig = firstMachine.getConfig();
-            final MachineConfigDto secondMachineConfig = secondMachine.getConfig();
+            final MachineConfig firstMachineConfig = firstMachine.getConfig();
+            final MachineConfig secondMachineConfig = secondMachine.getConfig();
 
             if (firstMachineConfig.isDev()) {
                 return -1;

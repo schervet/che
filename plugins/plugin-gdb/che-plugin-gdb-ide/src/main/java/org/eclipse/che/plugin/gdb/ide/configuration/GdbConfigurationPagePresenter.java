@@ -24,6 +24,8 @@ import org.eclipse.che.api.promises.client.js.Promises;
 import org.eclipse.che.ide.api.app.AppContext;
 import org.eclipse.che.ide.api.debug.DebugConfiguration;
 import org.eclipse.che.ide.api.debug.DebugConfigurationPage;
+import org.eclipse.che.ide.api.machine.MachineEntity;
+import org.eclipse.che.ide.api.machine.MachineManager;
 import org.eclipse.che.ide.api.machine.MachineServiceClient;
 import org.eclipse.che.ide.api.machine.RecipeServiceClient;
 import org.eclipse.che.ide.dto.DtoFactory;
@@ -46,7 +48,7 @@ public class GdbConfigurationPagePresenter implements GdbConfigurationPageView.A
     public static final String DEFAULT_EXECUTABLE_TARGET_NAME = "a.out";
 
     private final GdbConfigurationPageView   view;
-    private final MachineServiceClient       machineServiceClient;
+    private final MachineManager             machineManager;
     private final AppContext                 appContext;
     private final RecipeServiceClient        recipeServiceClient;
     private final DtoFactory                 dtoFactory;
@@ -60,13 +62,13 @@ public class GdbConfigurationPagePresenter implements GdbConfigurationPageView.A
 
     @Inject
     public GdbConfigurationPagePresenter(GdbConfigurationPageView view,
-                                         MachineServiceClient machineServiceClient,
+                                         MachineManager machineManager,
                                          AppContext appContext,
                                          DtoFactory dtoFactory,
                                          RecipeServiceClient recipeServiceClient,
                                          CurrentProjectPathProvider currentProjectPathProvider) {
         this.view = view;
-        this.machineServiceClient = machineServiceClient;
+        this.machineManager = machineManager;
         this.appContext = appContext;
         this.recipeServiceClient = recipeServiceClient;
         this.dtoFactory = dtoFactory;
@@ -116,9 +118,9 @@ public class GdbConfigurationPagePresenter implements GdbConfigurationPageView.A
     }
 
     private void setHostsList() {
-        machineServiceClient.getMachines(appContext.getWorkspaceId()).then(new Operation<List<MachineDto>>() {
+        machineManager.getMachines(appContext.getWorkspaceId()).then(new Operation<List<MachineEntity>>() {
             @Override
-            public void apply(List<MachineDto> machines) throws OperationException {
+            public void apply(List<MachineEntity> machines) throws OperationException {
                 @SuppressWarnings("unchecked")
                 Promise<RecipeDescriptor>[] recipePromises = (Promise<RecipeDescriptor>[])new Promise[machines.size()];
 
@@ -133,7 +135,7 @@ public class GdbConfigurationPagePresenter implements GdbConfigurationPageView.A
         });
     }
 
-    private void setHostsList(final Promise<RecipeDescriptor>[] recipePromises, final List<MachineDto> machines) {
+    private void setHostsList(final Promise<RecipeDescriptor>[] recipePromises, final List<MachineEntity> machines) {
         Promises.all(recipePromises).then(new Operation<JsArrayMixed>() {
             @Override
             public void apply(JsArrayMixed recipes) throws OperationException {

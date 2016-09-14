@@ -104,16 +104,16 @@ public class SshCategoryPresenterTest {
         when(promise.then(operationSuccessCapture.capture())).thenReturn(promise);
 
 
-        arbitraryCategoryPresenter = new SshCategoryPresenter(sshView,
-                                                              recipeServiceClient,
-                                                              dtoFactory,
-                                                              dialogFactory,
-                                                              notificationManager,
-                                                              machineLocale,
-                                                              workspaceServiceClient,
-                                                              appContext,
-                                                              machineService,
-                                                              eventBus);
+//        arbitraryCategoryPresenter = new SshCategoryPresenter(sshView,
+//                                                              recipeServiceClient,
+//                                                              dtoFactory,
+//                                                              dialogFactory,
+//                                                              notificationManager,
+//                                                              machineLocale,
+//                                                              workspaceServiceClient,
+//                                                              appContext,
+//                                                              machineService,
+//                                                              eventBus);
         arbitraryCategoryPresenter.setTargetsTreeManager(targetsTreeManager);
         arbitraryCategoryPresenter.setCurrentSelection(target);
     }

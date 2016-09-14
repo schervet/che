@@ -15,12 +15,16 @@ import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.inject.Inject;
 
+import org.eclipse.che.api.core.model.machine.Machine;
+import org.eclipse.che.api.core.model.machine.MachineConfig;
 import org.eclipse.che.api.machine.shared.dto.MachineConfigDto;
 import org.eclipse.che.api.machine.shared.dto.MachineDto;
 import org.eclipse.che.api.machine.shared.dto.recipe.RecipeDescriptor;
 import org.eclipse.che.api.promises.client.Operation;
 import org.eclipse.che.api.promises.client.OperationException;
 import org.eclipse.che.ide.api.app.AppContext;
+import org.eclipse.che.ide.api.machine.MachineEntity;
+import org.eclipse.che.ide.api.machine.MachineManager;
 import org.eclipse.che.ide.api.machine.MachineServiceClient;
 import org.eclipse.che.ide.api.machine.RecipeServiceClient;
 import org.eclipse.che.ide.extension.machine.client.MachineLocalizationConstant;
@@ -44,11 +48,11 @@ public class TargetsPresenter implements TargetsTreeManager, TargetsView.ActionD
     private final RecipeServiceClient         recipeServiceClient;
     private final MachineLocalizationConstant machineLocale;
     private final AppContext                  appContext;
-    private final MachineServiceClient        machineService;
+    private final MachineManager              machineManager;
     private final CategoryPageRegistry        categoryPageRegistry;
 
-    private final Map<String, Target>     targets  = new HashMap<>();
-    private final Map<String, MachineDto> machines = new HashMap<>();
+    private final Map<String, Target>  targets  = new HashMap<>();
+    private final Map<String, Machine> machines = new HashMap<>();
 
     private Target selectedTarget;
 
@@ -57,13 +61,13 @@ public class TargetsPresenter implements TargetsTreeManager, TargetsView.ActionD
                             RecipeServiceClient recipeServiceClient,
                             MachineLocalizationConstant machineLocale,
                             AppContext appContext,
-                            MachineServiceClient machineService,
+                            MachineManager machineManager,
                             CategoryPageRegistry categoryPageRegistry) {
         this.view = view;
         this.recipeServiceClient = recipeServiceClient;
         this.machineLocale = machineLocale;
         this.appContext = appContext;
-        this.machineService = machineService;
+        this.machineManager = machineManager;
         this.categoryPageRegistry = categoryPageRegistry;
 
         view.setDelegate(this);
@@ -92,12 +96,12 @@ public class TargetsPresenter implements TargetsTreeManager, TargetsView.ActionD
         targets.clear();
         machines.clear();
 
-        machineService.getMachines(appContext.getWorkspaceId()).then(new Operation<List<MachineDto>>() {
+        machineManager.getMachines(appContext.getWorkspaceId()).then(new Operation<List<MachineEntity>>() {
             @Override
-            public void apply(List<MachineDto> machineList) throws OperationException {
+            public void apply(List<MachineEntity> machineList) throws OperationException {
                 //create Target objects from all machines
-                for (MachineDto machine : machineList) {
-                    final MachineConfigDto machineConfig = machine.getConfig();
+                for (MachineEntity machine : machineList) {
+                    final MachineConfig machineConfig = machine.getConfig();
                     machines.put(machineConfig.getName(), machine);
                     final String targetCategory = machineConfig.isDev() ? machineLocale.devMachineCategory() : machineConfig.getType();
                     final Target target = createTarget(machineConfig.getName(), targetCategory);
@@ -152,7 +156,7 @@ public class TargetsPresenter implements TargetsTreeManager, TargetsView.ActionD
      *
      * @return true for running machine
      */
-    private boolean isMachineRunning(MachineDto machine) {
+    private boolean isMachineRunning(Machine machine) {
         return machine != null && machine.getStatus() == RUNNING;
     }
 
@@ -225,7 +229,7 @@ public class TargetsPresenter implements TargetsTreeManager, TargetsView.ActionD
     }
 
     @Override
-    public MachineDto getMachineByName(String machineName) {
+    public Machine getMachineByName(String machineName) {
         return machines.get(machineName);
     }
 }

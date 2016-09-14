@@ -27,6 +27,7 @@ import com.google.gwt.user.client.ui.SplitLayoutPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.inject.Inject;
 
+import org.eclipse.che.api.core.model.machine.Machine;
 import org.eclipse.che.commons.annotation.Nullable;
 import org.eclipse.che.ide.api.parts.PartStackUIResources;
 import org.eclipse.che.ide.api.parts.base.BaseView;
@@ -48,6 +49,7 @@ import org.eclipse.che.ide.ui.tree.TreeNodeElement;
 import org.eclipse.che.ide.util.input.SignalEvent;
 import org.vectomatic.dom.svg.ui.SVGResource;
 
+import javax.validation.constraints.NotNull;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -106,15 +108,15 @@ public class ProcessesPanelViewImpl extends BaseView<ProcessesPanelView.ActionDe
 
         renderer.setAddTerminalClickHandler(new AddTerminalClickHandler() {
             @Override
-            public void onAddTerminalClick(String workspaceId, String machineId) {
-                delegate.onAddTerminal(workspaceId, machineId);
+            public void onAddTerminalClick(@NotNull Machine machine) {
+                delegate.onAddTerminal(machine.getWorkspaceId(), machine.getId());
             }
         });
 
         renderer.setPreviewSshClickHandler(new PreviewSshClickHandler() {
             @Override
-            public void onPreviewSshClick(String machineId) {
-                delegate.onPreviewSsh(machineId);
+            public void onPreviewSshClick(String machineName) {
+                delegate.onPreviewSsh(machineName);
             }
         });
 

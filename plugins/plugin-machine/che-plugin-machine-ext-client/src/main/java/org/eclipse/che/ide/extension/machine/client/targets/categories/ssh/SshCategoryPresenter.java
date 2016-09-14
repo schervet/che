@@ -15,9 +15,10 @@ import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.inject.Inject;
 import com.google.web.bindery.event.shared.EventBus;
 
-import org.eclipse.che.api.machine.shared.dto.MachineLimitsDto;
+import org.eclipse.che.api.core.model.machine.Machine;
 import org.eclipse.che.api.machine.shared.dto.MachineConfigDto;
 import org.eclipse.che.api.machine.shared.dto.MachineDto;
+import org.eclipse.che.api.machine.shared.dto.MachineLimitsDto;
 import org.eclipse.che.api.machine.shared.dto.MachineSourceDto;
 import org.eclipse.che.api.machine.shared.dto.event.MachineStatusEvent;
 import org.eclipse.che.api.machine.shared.dto.recipe.NewRecipe;
@@ -31,6 +32,8 @@ import org.eclipse.che.ide.api.app.AppContext;
 import org.eclipse.che.ide.api.dialogs.CancelCallback;
 import org.eclipse.che.ide.api.dialogs.ConfirmCallback;
 import org.eclipse.che.ide.api.dialogs.DialogFactory;
+import org.eclipse.che.ide.api.machine.MachineEntity;
+import org.eclipse.che.ide.api.machine.MachineManager;
 import org.eclipse.che.ide.api.machine.MachineServiceClient;
 import org.eclipse.che.ide.api.machine.RecipeServiceClient;
 import org.eclipse.che.ide.api.notification.NotificationManager;
@@ -66,6 +69,7 @@ public class SshCategoryPresenter implements CategoryPage, TargetManager, SshVie
     private final RecipeServiceClient         recipeServiceClient;
     private final DtoFactory                  dtoFactory;
     private final DialogFactory               dialogFactory;
+    private final MachineManager              machineManager;
     private final NotificationManager         notificationManager;
     private final MachineLocalizationConstant machineLocale;
     private final AppContext                  appContext;
@@ -87,6 +91,7 @@ public class SshCategoryPresenter implements CategoryPage, TargetManager, SshVie
                                 RecipeServiceClient recipeServiceClient,
                                 DtoFactory dtoFactory,
                                 DialogFactory dialogFactory,
+                                MachineManager machineManager,
                                 NotificationManager notificationManager,
                                 MachineLocalizationConstant machineLocale,
                                 WorkspaceServiceClient workspaceServiceClient,
@@ -97,6 +102,7 @@ public class SshCategoryPresenter implements CategoryPage, TargetManager, SshVie
         this.recipeServiceClient = recipeServiceClient;
         this.dtoFactory = dtoFactory;
         this.dialogFactory = dialogFactory;
+        this.machineManager = machineManager;
         this.notificationManager = notificationManager;
         this.workspaceServiceClient = workspaceServiceClient;
         this.machineLocale = machineLocale;
@@ -130,12 +136,12 @@ public class SshCategoryPresenter implements CategoryPage, TargetManager, SshVie
     }
 
     private boolean isTargetNameExist(String targetName) {
-        if(this.targetsTreeManager == null || targetName == null) {
+        if (this.targetsTreeManager == null || targetName == null) {
             return false;
         }
-        if(selectedTarget != null && targetName.equals(selectedTarget.getName())){
+        if (selectedTarget != null && targetName.equals(selectedTarget.getName())) {
             RecipeDescriptor recipe = selectedTarget.getRecipe();
-            if(recipe != null && recipe.getName().equals(targetName)) {
+            if (recipe != null && recipe.getName().equals(targetName)) {
                 return true;
             }
         }
@@ -143,7 +149,7 @@ public class SshCategoryPresenter implements CategoryPage, TargetManager, SshVie
         return this.targetsTreeManager.isTargetNameExist(targetName);
     }
 
-    private MachineDto getMachineByName(String machineName) {
+    private Machine getMachineByName(String machineName) {
         if (this.targetsTreeManager == null) {
             return null;
         }
@@ -397,7 +403,7 @@ public class SshCategoryPresenter implements CategoryPage, TargetManager, SshVie
         }
 
         if (selectedTarget.isConnected()) {
-            final MachineDto machine = this.getMachineByName(selectedTarget.getName());
+            final Machine machine = this.getMachineByName(selectedTarget.getName());
             disconnect(machine);
             return;
         }
@@ -455,7 +461,7 @@ public class SshCategoryPresenter implements CategoryPage, TargetManager, SshVie
      * @param machine
      *         machine to destroy
      */
-    private void disconnect(final MachineDto machine) {
+    private void disconnect(final Machine machine) {
         if (machine == null || machine.getStatus() != RUNNING) {
             updateTargets(null);
             return;
@@ -498,7 +504,7 @@ public class SshCategoryPresenter implements CategoryPage, TargetManager, SshVie
     }
 
     private void deleteTarget(final Target target) {
-        final MachineDto machine = this.getMachineByName(target.getName());
+        final Machine machine = this.getMachineByName(target.getName());
 
         if (machine == null || machine.getStatus() != RUNNING) {
             deleteTargetRecipe(target);
@@ -543,7 +549,7 @@ public class SshCategoryPresenter implements CategoryPage, TargetManager, SshVie
                     updateTargets(null);
                     return;
                 }
-                final MachineDto machine = getMachineByName(target.getName());
+                final Machine machine = getMachineByName(target.getName());
                 disconnect(machine);
             }
         });
@@ -566,13 +572,14 @@ public class SshCategoryPresenter implements CategoryPage, TargetManager, SshVie
         new Timer() {
             @Override
             public void run() {
-                machineService.getMachine(workspaceId, machineId).then(new Operation<MachineDto>() {
+                machineManager.getMachine(workspaceId, machineId).then(new Operation<MachineEntity>() {
                     @Override
-                    public void apply(MachineDto machineDto) throws OperationException {
-                        if (machineDto.getStatus() == RUNNING) {
-                            connectNotification.setTitle(machineLocale.targetsViewConnectSuccess(machineDto.getConfig().getName()));
+                    public void apply(MachineEntity machine) throws OperationException {
+                        if (machine != null && machine.getStatus() == RUNNING) {
+                            final String machineName = machine.getConfig().getName();
+                            connectNotification.setTitle(machineLocale.targetsViewConnectSuccess(machineName));
                             connectNotification.setStatus(StatusNotification.Status.SUCCESS);
-                            updateTargets(machineDto.getConfig().getName());
+                            updateTargets(machineName);
                         } else {
                             onConnectingFailed(null);
                         }
@@ -657,5 +664,4 @@ public class SshCategoryPresenter implements CategoryPage, TargetManager, SshVie
             return;
         }
     }
-
 }

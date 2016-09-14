@@ -126,14 +126,14 @@ public class CreateMachinePresenterTest {
         when(appContext.getWorkspaceId()).thenReturn(WORKSPACE_ID);
         when(devMachine.getId()).thenReturn(SOME_TEXT);
         when(devMachine.getWorkspace()).thenReturn(WORKSPACE_ID);
-        when(machineServiceClient.getMachine(WORKSPACE_ID, SOME_TEXT)).thenReturn(machineDescriptorPromise);
+//        when(machineServiceClient.getMachine(WORKSPACE_ID, SOME_TEXT)).thenReturn(machineDescriptorPromise);
 
         presenter.onReplaceDevMachineClicked();
 
         verify(view).getMachineName();
         verify(view).getRecipeURL();
         verify(appContext, times(2)).getDevMachine();
-        verify(machineServiceClient).getMachine(WORKSPACE_ID, SOME_TEXT);
+//        verify(machineServiceClient).getMachine(WORKSPACE_ID, SOME_TEXT);
         verify(machineDescriptorPromise).then(machineCaptor.capture());
         machineCaptor.getValue().apply(mock(MachineDto.class));
         verify(machineManager).destroyMachine(any(MachineDto.class));
@@ -144,7 +144,7 @@ public class CreateMachinePresenterTest {
     @Test
     public void shouldStartNewDevMachine() throws Exception {
         when(appContext.getDevMachine()).thenReturn(null);
-        when(machineServiceClient.getMachine(WORKSPACE_ID, SOME_TEXT)).thenReturn(machineDescriptorPromise);
+//        when(machineServiceClient.getMachine(WORKSPACE_ID, SOME_TEXT)).thenReturn(machineDescriptorPromise);
 
         presenter.onReplaceDevMachineClicked();
 
@@ -153,7 +153,7 @@ public class CreateMachinePresenterTest {
         verify(appContext).getDevMachine();
         verify(machineManager).startDevMachine(eq(RECIPE_URL), eq(MACHINE_NAME));
         verify(view).close();
-        verify(machineServiceClient, never()).getMachine(WORKSPACE_ID, SOME_TEXT);
+//        verify(machineServiceClient, never()).getMachine(WORKSPACE_ID, SOME_TEXT);
         verify(machineManager, never()).destroyMachine(any(MachineDto.class));
         verify(machineManager).startDevMachine(eq(RECIPE_URL), eq(MACHINE_NAME));
     }

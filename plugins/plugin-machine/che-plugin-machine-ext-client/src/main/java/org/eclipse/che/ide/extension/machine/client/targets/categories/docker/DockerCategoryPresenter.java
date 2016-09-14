@@ -14,6 +14,7 @@ import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.inject.Inject;
 import com.google.web.bindery.event.shared.EventBus;
 
+import org.eclipse.che.api.core.model.machine.Machine;
 import org.eclipse.che.api.machine.shared.dto.MachineDto;
 import org.eclipse.che.api.promises.client.Operation;
 import org.eclipse.che.api.promises.client.OperationException;
@@ -88,7 +89,7 @@ public class DockerCategoryPresenter implements CategoryPage, TargetManager, Doc
         container.setWidget(dockerView);
     }
 
-    private MachineDto getMachineByName(String machineName) {
+    private Machine getMachineByName(String machineName) {
         return this.targetsTreeManager != null ? this.targetsTreeManager.getMachineByName(machineName) : null;
     }
 
@@ -105,7 +106,7 @@ public class DockerCategoryPresenter implements CategoryPage, TargetManager, Doc
             return false;
         }
 
-        final MachineDto machine = this.getMachineByName(target.getName());
+        final Machine machine = this.getMachineByName(target.getName());
         if (machine == null) {
             return false;
         }
@@ -137,7 +138,7 @@ public class DockerCategoryPresenter implements CategoryPage, TargetManager, Doc
     }
 
     private void destroyTargetMachine(final Target target) {
-        final MachineDto machine = this.getMachineByName(target.getName());
+        final Machine machine = this.getMachineByName(target.getName());
 
         if (machine == null || machine.getStatus() != RUNNING) {
             return;

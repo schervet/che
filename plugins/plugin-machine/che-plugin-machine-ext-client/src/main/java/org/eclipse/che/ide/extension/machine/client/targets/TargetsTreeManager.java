@@ -10,7 +10,7 @@
  *******************************************************************************/
 package org.eclipse.che.ide.extension.machine.client.targets;
 
-import org.eclipse.che.api.machine.shared.dto.MachineDto;
+import org.eclipse.che.api.core.model.machine.Machine;
 
 /**
  * Targets tree manager interface.
@@ -35,5 +35,5 @@ public interface TargetsTreeManager {
      *
      * @param machineName
      * */
-    MachineDto getMachineByName(String machineName);
+    Machine getMachineByName(String machineName);
 }

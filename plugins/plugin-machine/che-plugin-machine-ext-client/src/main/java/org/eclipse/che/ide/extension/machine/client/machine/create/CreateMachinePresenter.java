@@ -14,14 +14,14 @@ import com.google.gwt.regexp.shared.RegExp;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
-import org.eclipse.che.ide.api.machine.MachineManager;
-import org.eclipse.che.ide.api.machine.MachineServiceClient;
-import org.eclipse.che.ide.api.machine.RecipeServiceClient;
-import org.eclipse.che.api.machine.shared.dto.MachineDto;
 import org.eclipse.che.api.machine.shared.dto.recipe.RecipeDescriptor;
 import org.eclipse.che.api.promises.client.Operation;
 import org.eclipse.che.api.promises.client.OperationException;
 import org.eclipse.che.ide.api.app.AppContext;
+import org.eclipse.che.ide.api.machine.DevMachine;
+import org.eclipse.che.ide.api.machine.MachineEntity;
+import org.eclipse.che.ide.api.machine.MachineManager;
+import org.eclipse.che.ide.api.machine.RecipeServiceClient;
 
 import java.util.Collections;
 import java.util.List;
@@ -44,23 +44,20 @@ public class CreateMachinePresenter implements CreateMachineView.ActionDelegate 
     private static final int    SKIP_COUNT  = 0;
     private static final int    MAX_COUNT   = 100;
 
-    private final CreateMachineView    view;
-    private final AppContext           appContext;
-    private final MachineManager       machineManager;
-    private final RecipeServiceClient  recipeServiceClient;
-    private final MachineServiceClient machineServiceClient;
+    private final CreateMachineView   view;
+    private final AppContext          appContext;
+    private final MachineManager      machineManager;
+    private final RecipeServiceClient recipeServiceClient;
 
     @Inject
     public CreateMachinePresenter(CreateMachineView view,
                                   AppContext appContext,
                                   MachineManager machineManager,
-                                  RecipeServiceClient recipeServiceClient,
-                                  MachineServiceClient machineServiceClient) {
+                                  RecipeServiceClient recipeServiceClient) {
         this.view = view;
         this.appContext = appContext;
         this.machineManager = machineManager;
         this.recipeServiceClient = recipeServiceClient;
-        this.machineServiceClient = machineServiceClient;
 
         view.setDelegate(this);
     }
@@ -134,13 +131,14 @@ public class CreateMachinePresenter implements CreateMachineView.ActionDelegate 
     public void onReplaceDevMachineClicked() {
         final String machineName = view.getMachineName();
         final String recipeURL = view.getRecipeURL();
-
-        if (appContext.getDevMachine() != null) {
-            machineServiceClient.getMachine(appContext.getWorkspaceId(),
-                                            appContext.getDevMachine().getId()).then(new Operation<MachineDto>() {
+        final DevMachine devMachine = appContext.getDevMachine();
+        if (devMachine != null) {
+            machineManager.getMachine(devMachine.getWorkspaceId(), devMachine.getId()).then(new Operation<MachineEntity>() {
                 @Override
-                public void apply(MachineDto machine) throws OperationException {
-                    machineManager.destroyMachine(machine);
+                public void apply(MachineEntity machine) throws OperationException {
+                    if (machine != null) {
+                        machineManager.destroyMachine(machine);
+                    }
                 }
             });
         }

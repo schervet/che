@@ -15,6 +15,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.web.bindery.event.shared.EventBus;
 
+import org.eclipse.che.api.core.model.machine.Server;
 import org.eclipse.che.api.machine.shared.dto.MachineDto;
 import org.eclipse.che.api.machine.shared.dto.ServerDto;
 import org.eclipse.che.api.promises.client.Operation;
@@ -24,6 +25,8 @@ import org.eclipse.che.api.promises.client.js.Promises;
 import org.eclipse.che.ide.api.app.AppContext;
 import org.eclipse.che.ide.api.machine.CommandPropertyValueProvider;
 import org.eclipse.che.ide.api.machine.CommandPropertyValueProviderRegistry;
+import org.eclipse.che.ide.api.machine.MachineEntity;
+import org.eclipse.che.ide.api.machine.MachineManager;
 import org.eclipse.che.ide.api.machine.MachineServiceClient;
 import org.eclipse.che.ide.api.machine.events.WsAgentStateEvent;
 import org.eclipse.che.ide.api.machine.events.WsAgentStateHandler;
@@ -41,15 +44,15 @@ public class ServerPortProvider implements WsAgentStateHandler {
 
     public static final String KEY_TEMPLATE = "${server.port.%}";
 
-    private final MachineServiceClient                 machineServiceClient;
+    private final MachineManager                       machineManager;
     private final CommandPropertyValueProviderRegistry commandPropertyRegistry;
     private final AppContext                           appContext;
 
     private Set<CommandPropertyValueProvider> providers;
 
-    private final Operation<MachineDto> registerProviders = new Operation<MachineDto>() {
+    private final Operation<MachineEntity> registerProviders = new Operation<MachineEntity>() {
         @Override
-        public void apply(MachineDto machine) throws OperationException {
+        public void apply(MachineEntity machine) throws OperationException {
             providers = getProviders(machine);
             commandPropertyRegistry.register(providers);
         }
@@ -57,10 +60,10 @@ public class ServerPortProvider implements WsAgentStateHandler {
 
     @Inject
     public ServerPortProvider(EventBus eventBus,
-                              MachineServiceClient machineServiceClient,
+                              MachineManager machineManager,
                               CommandPropertyValueProviderRegistry commandPropertyRegistry,
                               AppContext appContext) {
-        this.machineServiceClient = machineServiceClient;
+        this.machineManager = machineManager;
         this.commandPropertyRegistry = commandPropertyRegistry;
         this.appContext = appContext;
 
@@ -72,13 +75,13 @@ public class ServerPortProvider implements WsAgentStateHandler {
     private void registerProviders() {
         String devMachineId = appContext.getDevMachine().getId();
         if (devMachineId != null) {
-            machineServiceClient.getMachine(appContext.getWorkspaceId(), devMachineId).then(registerProviders);
+            machineManager.getMachine(appContext.getWorkspaceId(), devMachineId).then(registerProviders);
         }
     }
 
-    private Set<CommandPropertyValueProvider> getProviders(MachineDto machine) {
+    private Set<CommandPropertyValueProvider> getProviders(MachineEntity machine) {
         Set<CommandPropertyValueProvider> providers = Sets.newHashSet();
-        for (Map.Entry<String, ServerDto> entry : machine.getRuntime().getServers().entrySet()) {
+        for (Map.Entry<String, ? extends Server> entry : machine.getRuntime().getServers().entrySet()) {
             providers.add(new AddressProvider(entry.getKey(), entry.getValue().getAddress()));
 
             if (entry.getKey().endsWith("/tcp")) {

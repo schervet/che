@@ -17,19 +17,29 @@ import com.google.web.bindery.event.shared.EventBus;
 import org.eclipse.che.api.core.model.machine.Machine;
 import org.eclipse.che.api.core.model.machine.MachineConfig;
 import org.eclipse.che.api.core.model.machine.MachineSource;
+import org.eclipse.che.api.machine.shared.dto.MachineDto;
 import org.eclipse.che.api.machine.shared.dto.MachineLimitsDto;
 import org.eclipse.che.api.machine.shared.dto.MachineConfigDto;
 import org.eclipse.che.api.machine.shared.dto.MachineSourceDto;
+import org.eclipse.che.api.promises.client.Function;
+import org.eclipse.che.api.promises.client.FunctionException;
 import org.eclipse.che.api.promises.client.Operation;
 import org.eclipse.che.api.promises.client.OperationException;
 import org.eclipse.che.api.promises.client.Promise;
+import org.eclipse.che.api.workspace.shared.dto.WorkspaceDto;
+import org.eclipse.che.api.workspace.shared.dto.WorkspaceRuntimeDto;
 import org.eclipse.che.ide.api.app.AppContext;
 import org.eclipse.che.ide.api.machine.DevMachine;
+import org.eclipse.che.ide.api.machine.MachineEntity;
 import org.eclipse.che.ide.api.machine.MachineManager;
 import org.eclipse.che.ide.api.machine.MachineServiceClient;
 import org.eclipse.che.ide.api.workspace.WorkspaceServiceClient;
 import org.eclipse.che.ide.context.AppContextImpl;
 import org.eclipse.che.ide.dto.DtoFactory;
+import org.eclipse.che.ide.extension.machine.client.inject.factories.EntityFactory;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.eclipse.che.ide.extension.machine.client.machine.MachineStateEvent.MachineAction.DESTROYED;
 
@@ -42,23 +52,61 @@ import static org.eclipse.che.ide.extension.machine.client.machine.MachineStateE
 @Singleton
 public class MachineManagerImpl implements MachineManager {
 
-    private final MachineServiceClient    machineServiceClient;
-    private final WorkspaceServiceClient  workspaceServiceClient;
-    private final AppContext              appContext;
-    private final DtoFactory              dtoFactory;
-    private final EventBus                eventBus;
+    private final MachineServiceClient   machineServiceClient;
+    private final WorkspaceServiceClient workspaceServiceClient;
+    private final AppContext             appContext;
+    private final EntityFactory          entityFactory;
+    private final DtoFactory             dtoFactory;
+    private final EventBus               eventBus;
 
     @Inject
     public MachineManagerImpl(final MachineServiceClient machineServiceClient,
                               final WorkspaceServiceClient workspaceServiceClient,
                               final EventBus eventBus,
                               final AppContext appContext,
+                              final EntityFactory entityFactory,
                               final DtoFactory dtoFactory) {
         this.machineServiceClient = machineServiceClient;
         this.workspaceServiceClient = workspaceServiceClient;
         this.appContext = appContext;
+        this.entityFactory = entityFactory;
         this.dtoFactory = dtoFactory;
         this.eventBus = eventBus;
+    }
+
+    @Override
+    public Promise<MachineEntity> getMachine(final String workspaceId, final String machineId) {
+        return workspaceServiceClient.getWorkspace(workspaceId).then(new Function<WorkspaceDto, MachineEntity>() {
+            @Override
+            public MachineEntity apply(WorkspaceDto workspace) throws FunctionException {
+                for (MachineDto machineDto : workspace.getRuntime().getMachines()) {
+                    if (machineId.equals(machineDto.getId())) {
+                        return entityFactory.createMachine(machineDto);
+                    }
+                }
+                return null;
+            }
+        });
+    }
+
+    @Override
+    public Promise<List<MachineEntity>> getMachines(String workspaceId) {
+        return workspaceServiceClient.getWorkspace(workspaceId).then(new Function<WorkspaceDto, List<MachineEntity>>() {
+            @Override
+            public List<MachineEntity> apply(WorkspaceDto workspace) throws FunctionException {
+                List<MachineEntity> machines = new ArrayList<>();
+                WorkspaceRuntimeDto workspaceRuntime = workspace.getRuntime();
+                if (workspaceRuntime == null) {
+                    return machines;
+                }
+
+                for (MachineDto machineDto : workspaceRuntime.getMachines()) {
+                    MachineEntity machineEntity = entityFactory.createMachine(machineDto);
+                    machines.add(machineEntity);
+                }
+                return machines;
+            }
+        });
     }
 
     @Override

@@ -11,7 +11,13 @@
 package org.eclipse.che.ide.api.machine;
 
 import org.eclipse.che.api.core.model.machine.Machine;
+import org.eclipse.che.api.machine.shared.dto.MachineDto;
+import org.eclipse.che.api.promises.client.Function;
+import org.eclipse.che.api.promises.client.FunctionException;
 import org.eclipse.che.api.promises.client.Promise;
+import org.eclipse.che.api.workspace.shared.dto.WorkspaceDto;
+
+import java.util.List;
 
 /**
  * Manager for machine.
@@ -19,6 +25,10 @@ import org.eclipse.che.api.promises.client.Promise;
  * @author Roman Nikitenko
  */
 public interface MachineManager {
+
+    Promise<MachineEntity> getMachine(final String workspaceId, final String machineId);
+
+    Promise<List<MachineEntity>> getMachines(final String workspaceId);
 
     /**
      * Start new machine as dev-machine (bind workspace to running machine).

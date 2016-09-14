@@ -80,7 +80,7 @@ public class GdbConfigurationPagePresenterTest {
     @Test
     public void testGo() throws Exception {
         AcceptsOneWidget container = Mockito.mock(AcceptsOneWidget.class);
-        when(machineServiceClient.getMachines(appContext.getWorkspaceId())).thenReturn(mock(Promise.class));
+//        when(machineServiceClient.getMachines(appContext.getWorkspaceId())).thenReturn(mock(Promise.class));
 
         pagePresenter.go(container);
 
