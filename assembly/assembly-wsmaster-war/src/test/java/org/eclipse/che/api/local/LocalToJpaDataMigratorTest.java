@@ -10,6 +10,12 @@
  *******************************************************************************/
 package org.eclipse.che.api.local;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -18,6 +24,8 @@ import com.google.inject.name.Names;
 import com.google.inject.persist.jpa.JpaPersistModule;
 
 import org.eclipse.che.api.core.jdbc.jpa.guice.JpaInitializer;
+import org.eclipse.che.api.local.storage.LocalStorageFactory;
+import org.eclipse.che.api.local.storage.stack.StackLocalStorage;
 import org.eclipse.che.api.machine.server.jpa.MachineJpaModule;
 import org.eclipse.che.api.machine.server.model.impl.SnapshotImpl;
 import org.eclipse.che.api.machine.server.recipe.RecipeImpl;
@@ -46,11 +54,14 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import javax.persistence.EntityManagerFactory;
+import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 
+import static java.util.Collections.singletonList;
+import static java.util.Collections.singletonMap;
 import static org.eclipse.che.api.TestObjectsFactory.createPreferences;
 import static org.eclipse.che.api.TestObjectsFactory.createProfile;
 import static org.eclipse.che.api.TestObjectsFactory.createRecipe;
@@ -80,21 +91,14 @@ public class LocalToJpaDataMigratorTest {
     private RecipeDao     recipeDao;
     private StackDao      stackDao;
 
-    private LocalUserDaoImpl       localUserDao;
-    private LocalProfileDaoImpl    localProfileDao;
-    private LocalPreferenceDaoImpl localPreferenceDao;
-    private LocalWorkspaceDaoImpl  localWorkspaceDao;
-    private LocalSnapshotDaoImpl   localSnapshotDao;
-    private LocalSshDaoImpl        localSshDao;
-    private LocalRecipeDaoImpl     localRecipeDao;
-    private LocalStackDaoImpl      localStackDao;
-
+    private LocalStorageFactory        factory;
     private StackJsonAdapter           stackJsonAdapter;
     private WorkspaceConfigJsonAdapter workspaceCfgJsonAdapter;
 
     @BeforeMethod
     private void setUp() throws Exception {
         workingDir = Files.createTempDirectory(Paths.get("/tmp"), "test");
+        factory = new LocalStorageFactory(workingDir.toString());
         injector = Guice.createInjector(Stage.PRODUCTION, new AbstractModule() {
             @Override
             protected void configure() {
@@ -118,14 +122,6 @@ public class LocalToJpaDataMigratorTest {
         workspaceDao = injector.getInstance(WorkspaceDao.class);
         recipeDao = injector.getInstance(RecipeDao.class);
         stackDao = injector.getInstance(StackDao.class);
-        localUserDao = injector.getInstance(LocalUserDaoImpl.class);
-        localProfileDao = injector.getInstance(LocalProfileDaoImpl.class);
-        localPreferenceDao = injector.getInstance(LocalPreferenceDaoImpl.class);
-        localWorkspaceDao = injector.getInstance(LocalWorkspaceDaoImpl.class);
-        localSnapshotDao = injector.getInstance(LocalSnapshotDaoImpl.class);
-        localSshDao = injector.getInstance(LocalSshDaoImpl.class);
-        localRecipeDao = injector.getInstance(LocalRecipeDaoImpl.class);
-        localStackDao = injector.getInstance(LocalStackDaoImpl.class);
 
         stackJsonAdapter = injector.getInstance(StackJsonAdapter.class);
         workspaceCfgJsonAdapter = injector.getInstance(WorkspaceConfigJsonAdapter.class);
@@ -181,35 +177,46 @@ public class LocalToJpaDataMigratorTest {
 
     private void storeTestData() throws Exception {
         final UserImpl user = createUser("user123");
-        localUserDao.create(user);
-        localUserDao.saveUsers();
-
         final ProfileImpl profile = createProfile(user.getId());
-        localProfileDao.create(profile);
-        localProfileDao.saveProfiles();
-
         final Map<String, String> preferences = createPreferences();
-        localPreferenceDao.setPreferences(user.getId(), preferences);
-        localPreferenceDao.savePreferences();
-
         final SshPairImpl pair = createSshPair(user.getId(), "service", "name");
-        localSshDao.create(pair);
-        localSshDao.saveSshPairs();
-
         final WorkspaceImpl workspace = createWorkspace("id", user.getAccount());
-        localWorkspaceDao.create(workspace);
-        localWorkspaceDao.saveWorkspaces();
-
         final SnapshotImpl snapshot = createSnapshot("snapshot123", workspace.getId());
-        localSnapshotDao.saveSnapshot(snapshot);
-        localSnapshotDao.saveSnapshots();
-
         final RecipeImpl recipe = createRecipe("recipe123");
-        localRecipeDao.create(recipe);
-        localRecipeDao.saveRecipes();
-
         final StackImpl stack = createStack("stack123", "stack-name");
-        localStackDao.create(stack);
-        localStackDao.saveStacks();
+
+        factory.create(LocalUserDaoImpl.FILENAME).store(singletonMap(user.getId(), user));
+        factory.create(LocalProfileDaoImpl.FILENAME).store(singletonMap(profile.getUserId(), profile));
+        factory.create(LocalPreferenceDaoImpl.FILENAME).store(singletonMap(user.getId(), preferences));
+        factory.create(LocalSshDaoImpl.FILENAME, singletonMap(SshPairImpl.class, new SshSerializer()))
+               .store(singletonMap(pair.getOwner(), singletonList(pair)));
+        factory.create(LocalWorkspaceDaoImpl.FILENAME, singletonMap(WorkspaceImpl.class, new WorkspaceSerializer()))
+               .store(singletonMap(workspace.getId(), workspace));
+        factory.create(LocalSnapshotDaoImpl.FILENAME).store(singletonMap(snapshot.getId(), snapshot));
+        factory.create(LocalRecipeDaoImpl.FILENAME).store(singletonMap(recipe.getId(), recipe));
+        factory.create(StackLocalStorage.STACK_STORAGE_FILE).store(singletonMap(stack.getId(), stack));
+    }
+
+    public static class WorkspaceSerializer implements JsonSerializer<WorkspaceImpl> {
+        @Override
+        public JsonElement serialize(WorkspaceImpl src, Type typeOfSrc, JsonSerializationContext context) {
+            JsonElement result = new Gson().toJsonTree(src, WorkspaceImpl.class);
+            result.getAsJsonObject().addProperty("namespace", src.getNamespace());
+            result.getAsJsonObject().remove("account");
+            return result;
+        }
+    }
+
+    public static class SshSerializer implements JsonSerializer<SshPairImpl> {
+
+        @Override
+        public JsonElement serialize(SshPairImpl sshPair, Type type, JsonSerializationContext jsonSerializationContext) {
+            JsonObject result = new JsonObject();
+            result.add("service", new JsonPrimitive(sshPair.getService()));
+            result.add("name", new JsonPrimitive(sshPair.getName()));
+            result.add("privateKey", new JsonPrimitive(sshPair.getPublicKey()));
+            result.add("publicKey", new JsonPrimitive(sshPair.getPrivateKey()));
+            return result;
+        }
     }
 }
