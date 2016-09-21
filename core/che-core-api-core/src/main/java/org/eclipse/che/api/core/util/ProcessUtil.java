@@ -94,6 +94,11 @@ public final class ProcessUtil {
     public static void kill(Process process) {
         PROCESS_MANAGER.kill(process);
     }
+    
+    /* Temp fix CHE-25XX: Add ability to call SIGINT signal in ProcessManager */
+    public static void kill(Process process, int signal) {
+        PROCESS_MANAGER.kill(process, signal);
+    }
 
     public static int system(String command) {
         return PROCESS_MANAGER.system(command);

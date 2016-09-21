@@ -20,6 +20,9 @@ abstract class ProcessManager {
     }
 
     abstract void kill(Process process);
+    
+    /* Temp fix CHE-25XX: Add ability to call SIGINT signal in ProcessManager */
+    abstract void kill(Process process, int signal);
 
     abstract boolean isAlive(Process process);
 

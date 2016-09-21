@@ -62,6 +62,9 @@ class UnixProcessManager extends ProcessManager {
         // kill -l
         int SIGKILL = 9;
         int SIGTERM = 15;
+        
+		/* Temp fix CHE-25XX: Add ability to call SIGINT signal in ProcessManager */
+        int SIGINT = 2;
 
         int kill(int pid, int signal);
 
@@ -72,6 +75,28 @@ class UnixProcessManager extends ProcessManager {
 
     private static final Pattern UNIX_PS_TABLE_PATTERN = Pattern.compile("\\s+");
 
+    /* Temp fix CHE-25XX: Add ability to call SIGINT signal in ProcessManager */
+    @Override
+    public void kill(Process process, int signal) {
+        if(CLibrary.SIGKILL == signal){
+            kill(process);
+        }
+        else{
+            if (C_LIBRARY != null) {
+                int pid = getPid(process);
+                int r = C_LIBRARY.kill(pid, signal); // send signal to origin process
+                LOG.debug("kill {}, with signal {}", pid, signal);
+                if (r != 0) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("kill for {}:signal {} returns {}, strerror '{}'", pid, signal, r, C_LIBRARY.strerror(r));
+                    }
+                }
+            } else {
+                throw new IllegalStateException("Can't kill process. Not unix system?");
+            }
+        }
+    }
+    
     @Override
     public void kill(Process process) {
         if (C_LIBRARY != null) {
