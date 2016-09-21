@@ -75,8 +75,9 @@ public class DebuggerServiceClientImpl implements DebuggerServiceClient {
     @Override
     public Promise<Void> disconnect(String id) {
         final String requestUrl = getBaseUrl(id);
+        /* TODO: Temp fix CHE-2508: avoid deadlock of WS */
         return asyncRequestFactory.createDeleteRequest(requestUrl)
-                                  .loader(loaderFactory.newLoader())
+                                  //.loader(loaderFactory.newLoader())
                                   .send();
     }
 
@@ -194,8 +195,9 @@ public class DebuggerServiceClientImpl implements DebuggerServiceClient {
 
     protected Promise<Void> performAction(String id, ActionDto actionDto) {
         final String requestUrl = getBaseUrl(id);
+        /* TODO: Temp fix CHE-2508: avoid deadlock of WS */
         return asyncRequestFactory.createPostRequest(requestUrl, actionDto)
-                                  .loader(loaderFactory.newLoader())
+                                  //.loader(loaderFactory.newLoader())
                                   .send();
     }
 }

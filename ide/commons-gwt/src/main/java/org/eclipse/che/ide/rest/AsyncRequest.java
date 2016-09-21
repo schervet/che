@@ -200,6 +200,8 @@ public class AsyncRequest {
             loader.show();
         }
 
+        /* TODO: Temp fix CHE-2508: add 10s timeout on request to avoid deadlock of WS */
+        requestBuilder.setTimeoutMillis(10000);
         requestBuilder.send();
     }
 
@@ -258,6 +260,8 @@ public class AsyncRequest {
             });
 
             try {
+                /* TODO: Temp fix CHE-2508: add 10s timeout on request to avoid deadlock of WS */
+                requestBuilder.setTimeoutMillis(10000);
                 requestBuilder.send();
             } catch (RequestException e) {
                 if (asyncTaskStatusHandler != null) {
