@@ -19,7 +19,7 @@ class DefaultProcessManager extends ProcessManager {
     /*
     NOTE: some methods are not implemented for other system than unix like system.
      */
-    /* Temp fix CHE-25XX: Add ability to call SIGINT signal in ProcessManager */
+    /* Temp fix CHE-2508: Add ability to call SIGINT signal in ProcessManager */
     @Override
     public void kill(Process process, int signal) {
         kill(process);

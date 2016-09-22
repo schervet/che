@@ -63,7 +63,7 @@ class UnixProcessManager extends ProcessManager {
         int SIGKILL = 9;
         int SIGTERM = 15;
         
-		/* Temp fix CHE-25XX: Add ability to call SIGINT signal in ProcessManager */
+        /* Hot Fix CHE-2508: Add ability to call SIGINT signal in ProcessManager */
         int SIGINT = 2;
 
         int kill(int pid, int signal);
@@ -75,7 +75,7 @@ class UnixProcessManager extends ProcessManager {
 
     private static final Pattern UNIX_PS_TABLE_PATTERN = Pattern.compile("\\s+");
 
-    /* Temp fix CHE-25XX: Add ability to call SIGINT signal in ProcessManager */
+    /* Hot Fix CHE-2508: Add ability to call SIGINT signal in ProcessManager */
     @Override
     public void kill(Process process, int signal) {
         if(CLibrary.SIGKILL == signal){
