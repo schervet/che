@@ -21,6 +21,7 @@ public interface Action {
         STEP_OUT,
         STEP_OVER,
         START,
+        SUSPEND, /* CHE-2508: Create "suspend" Debug action */
         RESUME
     }
 }

@@ -18,6 +18,7 @@ import com.google.gson.JsonParser;
 import org.eclipse.che.api.debug.shared.dto.action.ActionDto;
 import org.eclipse.che.api.debug.shared.dto.action.ResumeActionDto;
 import org.eclipse.che.api.debug.shared.dto.action.StartActionDto;
+import org.eclipse.che.api.debug.shared.dto.action.SuspendActionDto;
 import org.eclipse.che.api.debug.shared.dto.action.StepIntoActionDto;
 import org.eclipse.che.api.debug.shared.dto.action.StepOutActionDto;
 import org.eclipse.che.api.debug.shared.dto.action.StepOverActionDto;
@@ -80,6 +81,9 @@ public class DebuggerActionProvider implements MessageBodyReader<ActionDto> {
                 return DtoFactory.getInstance().createDtoFromJson(json, ResumeActionDto.class);
             case START:
                 return DtoFactory.getInstance().createDtoFromJson(json, StartActionDto.class);
+            /* CHE-2508: Create "suspend" Debug action */
+            case SUSPEND:
+                return DtoFactory.getInstance().createDtoFromJson(json, SuspendActionDto.class);
             case STEP_INTO:
                 return DtoFactory.getInstance().createDtoFromJson(json, StepIntoActionDto.class);
             case STEP_OUT:

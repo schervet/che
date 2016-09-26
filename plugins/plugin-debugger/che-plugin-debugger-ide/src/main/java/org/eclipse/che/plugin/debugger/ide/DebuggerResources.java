@@ -26,6 +26,10 @@ public interface DebuggerResources extends ClientBundle {
 
     @Source("disconnect.svg")
     SVGResource disconnectDebugger();
+    
+    /* CHE-2508: Create "suspend" Debug action */
+    @Source("suspend.svg")
+    SVGResource suspend();
 
     @Source("stepinto.svg")
     SVGResource stepInto();

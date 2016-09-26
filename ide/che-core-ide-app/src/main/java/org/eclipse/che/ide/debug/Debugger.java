@@ -50,6 +50,12 @@ public interface Debugger extends DebuggerObservable {
      * Deletes all breakpoints.
      */
     void deleteAllBreakpoints();
+    
+    /* CHE-2508: Create "suspend" Debug action */
+    /**
+     * Does suspend.
+     */
+    void suspend();
 
     /**
      * Connects to server.

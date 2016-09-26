@@ -44,6 +44,7 @@ import org.eclipse.che.api.debug.shared.model.Variable;
 import org.eclipse.che.api.debug.shared.model.VariablePath;
 import org.eclipse.che.api.debug.shared.model.action.ResumeAction;
 import org.eclipse.che.api.debug.shared.model.action.StartAction;
+import org.eclipse.che.api.debug.shared.model.action.SuspendAction;
 import org.eclipse.che.api.debug.shared.model.action.StepIntoAction;
 import org.eclipse.che.api.debug.shared.model.action.StepOutAction;
 import org.eclipse.che.api.debug.shared.model.action.StepOverAction;
@@ -626,6 +627,12 @@ public class JavaDebugger implements EventsHandler, Debugger {
         doStep(StepRequest.STEP_INTO);
     }
 
+    /* TODO CHE-2508: Create "suspend" Debug action for GDB */
+    @Override
+    public void suspend(SuspendAction action) throws DebuggerException {
+        LOG.debug("TODO: jdb suspend Action");
+    }
+    
     @Override
     public void stepOut(StepOutAction action) throws DebuggerException {
         doStep(StepRequest.STEP_OUT);

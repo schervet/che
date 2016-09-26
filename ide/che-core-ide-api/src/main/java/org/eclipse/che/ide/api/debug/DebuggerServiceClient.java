@@ -18,6 +18,7 @@ import org.eclipse.che.api.debug.shared.dto.SimpleValueDto;
 import org.eclipse.che.api.debug.shared.dto.VariableDto;
 import org.eclipse.che.api.debug.shared.dto.action.ResumeActionDto;
 import org.eclipse.che.api.debug.shared.dto.action.StartActionDto;
+import org.eclipse.che.api.debug.shared.dto.action.SuspendActionDto;
 import org.eclipse.che.api.debug.shared.dto.action.StepIntoActionDto;
 import org.eclipse.che.api.debug.shared.dto.action.StepOutActionDto;
 import org.eclipse.che.api.debug.shared.dto.action.StepOverActionDto;
@@ -139,6 +140,18 @@ public interface DebuggerServiceClient {
      */
     Promise<Void> setValue(String id, VariableDto variableDto);
 
+    /* CHE-2508: Create "suspend" Debug action */
+    /**
+     * Does suspend.
+     *
+     * @param id
+     *      debug session id
+     * @param action
+     *      the suspend action parameters
+     */
+    Promise<Void> suspend(String id, SuspendActionDto action);
+    
+    
     /**
      * Does step into.
      *

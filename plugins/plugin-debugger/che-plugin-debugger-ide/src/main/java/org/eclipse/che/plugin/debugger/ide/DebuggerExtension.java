@@ -22,6 +22,7 @@ import org.eclipse.che.plugin.debugger.ide.actions.ChangeVariableValueAction;
 import org.eclipse.che.plugin.debugger.ide.actions.DebugAction;
 import org.eclipse.che.plugin.debugger.ide.actions.DeleteAllBreakpointsAction;
 import org.eclipse.che.plugin.debugger.ide.actions.DisconnectDebuggerAction;
+import org.eclipse.che.plugin.debugger.ide.actions.SuspendAction;
 import org.eclipse.che.plugin.debugger.ide.actions.EditConfigurationsAction;
 import org.eclipse.che.plugin.debugger.ide.actions.EvaluateExpressionAction;
 import org.eclipse.che.plugin.debugger.ide.actions.ResumeExecutionAction;
@@ -53,6 +54,8 @@ public class DebuggerExtension {
     private static final String EDIT_DEBUG_CONF_ID          = "editDebugConfigurations";
     private static final String DEBUG_ID                    = "debug";
     private static final String DISCONNECT_DEBUG_ID         = "disconnectDebug";
+    /* CHE-2508: Create "suspend" Debug action */
+    private static final String SUSPEND_ID               = "suspend";
     private static final String STEP_INTO_ID                = "stepInto";
     private static final String STEP_OVER_ID                = "stepOver";
     private static final String STEP_OUT_ID                 = "stepOut";
@@ -71,6 +74,8 @@ public class DebuggerExtension {
                              StepOverAction stepOverAction,
                              StepOutAction stepOutAction,
                              ResumeExecutionAction resumeExecutionAction,
+                             /* CHE-2508: Create "suspend" Debug action */
+                             SuspendAction suspendAction,
                              EvaluateExpressionAction evaluateExpressionAction,
                              DeleteAllBreakpointsAction deleteAllBreakpointsAction,
                              ChangeVariableValueAction changeVariableValueAction,
@@ -91,6 +96,7 @@ public class DebuggerExtension {
         actionManager.registerAction(STEP_OVER_ID, stepOverAction);
         actionManager.registerAction(STEP_OUT_ID, stepOutAction);
         actionManager.registerAction(RESUME_EXECUTION_ID, resumeExecutionAction);
+        actionManager.registerAction(SUSPEND_ID, suspendAction);
         actionManager.registerAction(EVALUATE_EXPRESSION_ID, evaluateExpressionAction);
         actionManager.registerAction(CHANGE_VARIABLE_VALUE_ID, changeVariableValueAction);
         actionManager.registerAction(SHOW_HIDE_DEBUGGER_PANEL_ID, showHideDebuggerPanelAction);
@@ -113,12 +119,14 @@ public class DebuggerExtension {
         runMenu.add(stepOverAction, LAST);
         runMenu.add(stepOutAction, LAST);
         runMenu.add(resumeExecutionAction, LAST);
+        runMenu.add(suspendAction, LAST);
         runMenu.addSeparator();
         runMenu.add(evaluateExpressionAction, LAST);
 
         // create debugger toolbar action group
         DefaultActionGroup debuggerToolbarActionGroup = new DefaultActionGroup(actionManager);
         debuggerToolbarActionGroup.add(resumeExecutionAction);
+        debuggerToolbarActionGroup.add(suspendAction);
         debuggerToolbarActionGroup.add(stepIntoAction);
         debuggerToolbarActionGroup.add(stepOverAction);
         debuggerToolbarActionGroup.add(stepOutAction);

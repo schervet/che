@@ -23,6 +23,7 @@ import org.eclipse.che.api.debug.shared.dto.VariableDto;
 import org.eclipse.che.api.debug.shared.dto.VariablePathDto;
 import org.eclipse.che.api.debug.shared.dto.action.ResumeActionDto;
 import org.eclipse.che.api.debug.shared.dto.action.StartActionDto;
+import org.eclipse.che.api.debug.shared.dto.action.SuspendActionDto;
 import org.eclipse.che.api.debug.shared.dto.action.StepIntoActionDto;
 import org.eclipse.che.api.debug.shared.dto.action.StepOutActionDto;
 import org.eclipse.che.api.debug.shared.dto.action.StepOverActionDto;
@@ -384,6 +385,25 @@ public abstract class AbstractDebugger implements Debugger, DebuggerObservable {
         }
     }
 
+    @Override
+    public void suspend() {
+        /* CHE-2508: Create "suspend" Debug action */
+        if (isConnected()) {
+            currentLocation = null;
+
+            SuspendActionDto action = dtoFactory.createDto(SuspendActionDto.class);
+            action.setType(Action.TYPE.SUSPEND);
+
+            Promise<Void> promise = service.suspend(debugSessionDto.getId(), action);
+            promise.catchError(new Operation<PromiseError>() {
+                @Override
+                public void apply(PromiseError arg) throws OperationException {
+                    Log.error(AbstractDebugger.class, arg.getCause());
+                }
+            });
+        }
+    }
+    
     @Override
     public void deleteAllBreakpoints() {
         if (isConnected()) {
