@@ -20,6 +20,7 @@ import org.eclipse.che.api.debug.shared.model.Variable;
 import org.eclipse.che.api.debug.shared.model.VariablePath;
 import org.eclipse.che.api.debug.shared.model.action.ResumeAction;
 import org.eclipse.che.api.debug.shared.model.action.StartAction;
+import org.eclipse.che.api.debug.shared.model.action.SuspendAction;
 import org.eclipse.che.api.debug.shared.model.action.StepIntoAction;
 import org.eclipse.che.api.debug.shared.model.action.StepOutAction;
 import org.eclipse.che.api.debug.shared.model.action.StepOverAction;
@@ -67,6 +68,9 @@ public interface Debugger {
      *      if any error occur
      */
     void start(StartAction action) throws DebuggerException;
+    
+    /* CHE-2508: Create "suspend" Debug action */
+    void suspend(SuspendAction action) throws DebuggerException;
 
     /**
      * Adds given breakpoint. When breakpoint is accepted by server

@@ -25,6 +25,7 @@ import org.eclipse.che.api.debug.shared.model.Location;
 import org.eclipse.che.api.debug.shared.model.VariablePath;
 import org.eclipse.che.api.debug.shared.model.action.ResumeAction;
 import org.eclipse.che.api.debug.shared.model.action.StartAction;
+import org.eclipse.che.api.debug.shared.model.action.SuspendAction;
 import org.eclipse.che.api.debug.shared.model.action.StepIntoAction;
 import org.eclipse.che.api.debug.shared.model.action.StepOutAction;
 import org.eclipse.che.api.debug.shared.model.action.StepOverAction;
@@ -114,6 +115,10 @@ public class DebuggerService {
                 break;
             case RESUME:
                 debugger.resume((ResumeAction)action);
+                break;
+			/* CHE-2508: Create "suspend" Debug action */
+            case SUSPEND:
+                debugger.suspend((SuspendAction)action);
                 break;
             case STEP_INTO:
                 debugger.stepInto((StepIntoAction)action);

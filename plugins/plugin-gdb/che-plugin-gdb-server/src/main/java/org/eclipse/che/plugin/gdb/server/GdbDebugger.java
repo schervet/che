@@ -17,6 +17,7 @@ import org.eclipse.che.api.debug.shared.model.SimpleValue;
 import org.eclipse.che.api.debug.shared.model.StackFrameDump;
 import org.eclipse.che.api.debug.shared.model.Variable;
 import org.eclipse.che.api.debug.shared.model.VariablePath;
+import org.eclipse.che.api.debug.shared.model.action.SuspendAction;
 import org.eclipse.che.api.debug.shared.model.action.ResumeAction;
 import org.eclipse.che.api.debug.shared.model.action.StartAction;
 import org.eclipse.che.api.debug.shared.model.action.StepIntoAction;
@@ -294,6 +295,12 @@ public class GdbDebugger implements Debugger {
         return getPort() > 0;
     }
 
+    /* TODO CHE-2508: Create "suspend" Debug action for GDB */
+    @Override
+    public void suspend(SuspendAction action) throws DebuggerException {
+        LOG.debug("TODO: suspend Debug action");
+    }
+    
     @Override
     public void stepOver(StepOverAction action) throws DebuggerException {
         try {

@@ -29,6 +29,10 @@ public interface DebuggerLocalizationConstant extends com.google.gwt.i18n.client
 
     @Key("disconnectDebugger")
     String disconnectDebugger();
+    
+    /* CHE-2508: Create "suspend" Debug action */
+    @Key("suspend")
+    String suspend();
 
     @Key("host")
     String host();
@@ -75,6 +79,10 @@ public interface DebuggerLocalizationConstant extends com.google.gwt.i18n.client
 
     @Key("disconnectDebuggerDescription")
     String disconnectDebuggerDescription();
+    
+    /* CHE-2508: Create "suspend" Debug action */
+    @Key("suspendDescription")
+    String suspendDescription();
 
     @Key("stepIntoDescription")
     String stepIntoDescription();
