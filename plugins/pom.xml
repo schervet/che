@@ -48,5 +48,6 @@
         <module>plugin-nodejs</module>
         <module>plugin-ssh-machine</module>
         <module>plugin-ssh-key</module>
+        <module>che-sample-custom-openocd-extension</module>
     </modules>
 </project>
